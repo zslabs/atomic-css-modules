@@ -6,7 +6,7 @@
     "web"
   ],
   "scripts": {
-    "prepare": "simple-git-hooks",
+    "prepare": "if [ -x node_modules/.bin/simple-git-hooks ]; then simple-git-hooks; fi",
     "build": "npm run build -w @zslabs/atomic-css-modules",
     "test": "npm run test -w @zslabs/atomic-css-modules",
     "test:watch": "npm run test:watch -w @zslabs/atomic-css-modules",
