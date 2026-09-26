@@ -1,0 +1,1965 @@
+{
+  "breakpoint.2xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.breakpoint.2xl",
+      "breakpoint.2xl"
+    ],
+    "body": "token('breakpoint.2xl')",
+    "description": "96rem (1536px)"
+  },
+  "breakpoint.lg": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.breakpoint.lg",
+      "breakpoint.lg"
+    ],
+    "body": "token('breakpoint.lg')",
+    "description": "64rem (1024px)"
+  },
+  "breakpoint.md": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.breakpoint.md",
+      "breakpoint.md"
+    ],
+    "body": "token('breakpoint.md')",
+    "description": "48rem (768px)"
+  },
+  "breakpoint.sm": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.breakpoint.sm",
+      "breakpoint.sm"
+    ],
+    "body": "token('breakpoint.sm')",
+    "description": "40rem (640px)"
+  },
+  "breakpoint.xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.breakpoint.xl",
+      "breakpoint.xl"
+    ],
+    "body": "token('breakpoint.xl')",
+    "description": "80rem (1280px)"
+  },
+  "color.accent.1": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.1",
+      "color.accent.1"
+    ],
+    "body": "token('color.accent.1')",
+    "description": "oklch(19.136% 0.02613 290.75882)"
+  },
+  "color.accent.10": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.10",
+      "color.accent.10"
+    ],
+    "body": "token('color.accent.10')",
+    "description": "oklch(58.862% 0.16922 289.35364)"
+  },
+  "color.accent.11": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.11",
+      "color.accent.11"
+    ],
+    "body": "token('color.accent.11')",
+    "description": "oklch(77.783% 0.12462 293.19316)"
+  },
+  "color.accent.12": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.12",
+      "color.accent.12"
+    ],
+    "body": "token('color.accent.12')",
+    "description": "oklch(91.165% 0.04495 292.44045)"
+  },
+  "color.accent.2": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.2",
+      "color.accent.2"
+    ],
+    "body": "token('color.accent.2')",
+    "description": "oklch(21.113% 0.03205 300.92696)"
+  },
+  "color.accent.3": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.3",
+      "color.accent.3"
+    ],
+    "body": "token('color.accent.3')",
+    "description": "oklch(27.073% 0.06549 294.41644)"
+  },
+  "color.accent.4": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.4",
+      "color.accent.4"
+    ],
+    "body": "token('color.accent.4')",
+    "description": "oklch(31.18% 0.09295 292.08071)"
+  },
+  "color.accent.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.5",
+      "color.accent.5"
+    ],
+    "body": "token('color.accent.5')",
+    "description": "oklch(34.918% 0.09913 291.33131)"
+  },
+  "color.accent.6": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.6",
+      "color.accent.6"
+    ],
+    "body": "token('color.accent.6')",
+    "description": "oklch(38.891% 0.10212 292.11708)"
+  },
+  "color.accent.7": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.7",
+      "color.accent.7"
+    ],
+    "body": "token('color.accent.7')",
+    "description": "oklch(44.453% 0.11034 291.96919)"
+  },
+  "color.accent.8": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.8",
+      "color.accent.8"
+    ],
+    "body": "token('color.accent.8')",
+    "description": "oklch(51.774% 0.13054 290.28686)"
+  },
+  "color.accent.9": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.accent.9",
+      "color.accent.9"
+    ],
+    "body": "token('color.accent.9')",
+    "description": "oklch(54.168% 0.17902 288.03315)"
+  },
+  "color.blackA.1": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.1",
+      "color.blackA.1"
+    ],
+    "body": "token('color.blackA.1')",
+    "description": "oklch(0% 0 0 / 0.05)"
+  },
+  "color.blackA.10": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.10",
+      "color.blackA.10"
+    ],
+    "body": "token('color.blackA.10')",
+    "description": "oklch(0% 0 0 / 0.8)"
+  },
+  "color.blackA.11": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.11",
+      "color.blackA.11"
+    ],
+    "body": "token('color.blackA.11')",
+    "description": "oklch(0% 0 0 / 0.9)"
+  },
+  "color.blackA.12": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.12",
+      "color.blackA.12"
+    ],
+    "body": "token('color.blackA.12')",
+    "description": "oklch(0% 0 0 / 0.95)"
+  },
+  "color.blackA.2": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.2",
+      "color.blackA.2"
+    ],
+    "body": "token('color.blackA.2')",
+    "description": "oklch(0% 0 0 / 0.1)"
+  },
+  "color.blackA.3": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.3",
+      "color.blackA.3"
+    ],
+    "body": "token('color.blackA.3')",
+    "description": "oklch(0% 0 0 / 0.15)"
+  },
+  "color.blackA.4": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.4",
+      "color.blackA.4"
+    ],
+    "body": "token('color.blackA.4')",
+    "description": "oklch(0% 0 0 / 0.2)"
+  },
+  "color.blackA.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.5",
+      "color.blackA.5"
+    ],
+    "body": "token('color.blackA.5')",
+    "description": "oklch(0% 0 0 / 0.3)"
+  },
+  "color.blackA.6": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.6",
+      "color.blackA.6"
+    ],
+    "body": "token('color.blackA.6')",
+    "description": "oklch(0% 0 0 / 0.4)"
+  },
+  "color.blackA.7": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.7",
+      "color.blackA.7"
+    ],
+    "body": "token('color.blackA.7')",
+    "description": "oklch(0% 0 0 / 0.5)"
+  },
+  "color.blackA.8": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.8",
+      "color.blackA.8"
+    ],
+    "body": "token('color.blackA.8')",
+    "description": "oklch(0% 0 0 / 0.6)"
+  },
+  "color.blackA.9": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.blackA.9",
+      "color.blackA.9"
+    ],
+    "body": "token('color.blackA.9')",
+    "description": "oklch(0% 0 0 / 0.7)"
+  },
+  "color.danger.1": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.1",
+      "color.danger.1"
+    ],
+    "body": "token('color.danger.1')",
+    "description": "oklch(18.803% 0.01345 18.42148)"
+  },
+  "color.danger.10": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.10",
+      "color.danger.10"
+    ],
+    "body": "token('color.danger.10')",
+    "description": "oklch(66.338% 0.17739 22.85167)"
+  },
+  "color.danger.11": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.11",
+      "color.danger.11"
+    ],
+    "body": "token('color.danger.11')",
+    "description": "oklch(78.041% 0.12812 22.13858)"
+  },
+  "color.danger.12": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.12",
+      "color.danger.12"
+    ],
+    "body": "token('color.danger.12')",
+    "description": "oklch(90.236% 0.05267 6.45311)"
+  },
+  "color.danger.2": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.2",
+      "color.danger.2"
+    ],
+    "body": "token('color.danger.2')",
+    "description": "oklch(20.458% 0.02168 14.06829)"
+  },
+  "color.danger.3": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.3",
+      "color.danger.3"
+    ],
+    "body": "token('color.danger.3')",
+    "description": "oklch(25.105% 0.06494 12.69437)"
+  },
+  "color.danger.4": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.4",
+      "color.danger.4"
+    ],
+    "body": "token('color.danger.4')",
+    "description": "oklch(28.929% 0.09511 14.32992)"
+  },
+  "color.danger.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.5",
+      "color.danger.5"
+    ],
+    "body": "token('color.danger.5')",
+    "description": "oklch(33.211% 0.10666 15.52555)"
+  },
+  "color.danger.6": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.6",
+      "color.danger.6"
+    ],
+    "body": "token('color.danger.6')",
+    "description": "oklch(38.144% 0.11081 16.80622)"
+  },
+  "color.danger.7": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.7",
+      "color.danger.7"
+    ],
+    "body": "token('color.danger.7')",
+    "description": "oklch(45.018% 0.12106 18.77319)"
+  },
+  "color.danger.8": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.8",
+      "color.danger.8"
+    ],
+    "body": "token('color.danger.8')",
+    "description": "oklch(54.356% 0.14576 21.76199)"
+  },
+  "color.danger.9": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.danger.9",
+      "color.danger.9"
+    ],
+    "body": "token('color.danger.9')",
+    "description": "oklch(62.557% 0.19334 23.02426)"
+  },
+  "color.primary.1": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.1",
+      "color.primary.1"
+    ],
+    "body": "token('color.primary.1')",
+    "description": "oklch(19.361% 0.0255 256.48154)"
+  },
+  "color.primary.10": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.10",
+      "color.primary.10"
+    ],
+    "body": "token('color.primary.10')",
+    "description": "oklch(68.838% 0.16932 251.4024)"
+  },
+  "color.primary.11": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.11",
+      "color.primary.11"
+    ],
+    "body": "token('color.primary.11')",
+    "description": "oklch(76.422% 0.12575 249.46529)"
+  },
+  "color.primary.12": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.12",
+      "color.primary.12"
+    ],
+    "body": "token('color.primary.12')",
+    "description": "oklch(90.712% 0.05104 238.44324)"
+  },
+  "color.primary.2": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.2",
+      "color.primary.2"
+    ],
+    "body": "token('color.primary.2')",
+    "description": "oklch(21.293% 0.03033 261.25815)"
+  },
+  "color.primary.3": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.3",
+      "color.primary.3"
+    ],
+    "body": "token('color.primary.3')",
+    "description": "oklch(27.447% 0.06629 253.92995)"
+  },
+  "color.primary.4": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.4",
+      "color.primary.4"
+    ],
+    "body": "token('color.primary.4')",
+    "description": "oklch(32.014% 0.09678 252.34577)"
+  },
+  "color.primary.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.5",
+      "color.primary.5"
+    ],
+    "body": "token('color.primary.5')",
+    "description": "oklch(36.71% 0.10588 250.70255)"
+  },
+  "color.primary.6": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.6",
+      "color.primary.6"
+    ],
+    "body": "token('color.primary.6')",
+    "description": "oklch(41.603% 0.11326 252.00498)"
+  },
+  "color.primary.7": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.7",
+      "color.primary.7"
+    ],
+    "body": "token('color.primary.7')",
+    "description": "oklch(47.411% 0.12187 253.08911)"
+  },
+  "color.primary.8": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.8",
+      "color.primary.8"
+    ],
+    "body": "token('color.primary.8')",
+    "description": "oklch(54.057% 0.13953 253.17411)"
+  },
+  "color.primary.9": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.primary.9",
+      "color.primary.9"
+    ],
+    "body": "token('color.primary.9')",
+    "description": "oklch(64.929% 0.19304 251.77905)"
+  },
+  "color.slate.1": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.1",
+      "color.slate.1"
+    ],
+    "body": "token('color.slate.1')",
+    "description": "oklch(17.853% 0.00407 285.9841)"
+  },
+  "color.slate.10": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.10",
+      "color.slate.10"
+    ],
+    "body": "token('color.slate.10')",
+    "description": "oklch(58.251% 0.01455 266.61041)"
+  },
+  "color.slate.11": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.11",
+      "color.slate.11"
+    ],
+    "body": "token('color.slate.11')",
+    "description": "oklch(76.856% 0.00964 258.3287)"
+  },
+  "color.slate.12": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.12",
+      "color.slate.12"
+    ],
+    "body": "token('color.slate.12')",
+    "description": "oklch(94.892% 0.00288 264.62562)"
+  },
+  "color.slate.2": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.2",
+      "color.slate.2"
+    ],
+    "body": "token('color.slate.2')",
+    "description": "oklch(21.318% 0.00421 264.41128)"
+  },
+  "color.slate.3": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.3",
+      "color.slate.3"
+    ],
+    "body": "token('color.slate.3')",
+    "description": "oklch(25.214% 0.00582 271.18119)"
+  },
+  "color.slate.4": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.4",
+      "color.slate.4"
+    ],
+    "body": "token('color.slate.4')",
+    "description": "oklch(28.319% 0.00699 248.06152)"
+  },
+  "color.slate.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.5",
+      "color.slate.5"
+    ],
+    "body": "token('color.slate.5')",
+    "description": "oklch(31.177% 0.0083 255.56204)"
+  },
+  "color.slate.6": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.6",
+      "color.slate.6"
+    ],
+    "body": "token('color.slate.6')",
+    "description": "oklch(34.655% 0.01029 253.97812)"
+  },
+  "color.slate.7": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.7",
+      "color.slate.7"
+    ],
+    "body": "token('color.slate.7')",
+    "description": "oklch(39.928% 0.01206 252.9322)"
+  },
+  "color.slate.8": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.8",
+      "color.slate.8"
+    ],
+    "body": "token('color.slate.8')",
+    "description": "oklch(48.932% 0.01551 251.7052)"
+  },
+  "color.slate.9": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.slate.9",
+      "color.slate.9"
+    ],
+    "body": "token('color.slate.9')",
+    "description": "oklch(53.7% 0.01532 262.34603)"
+  },
+  "color.success.1": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.1",
+      "color.success.1"
+    ],
+    "body": "token('color.success.1')",
+    "description": "oklch(18.639% 0.01352 169.77851)"
+  },
+  "color.success.10": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.10",
+      "color.success.10"
+    ],
+    "body": "token('color.success.10')",
+    "description": "oklch(67.775% 0.12556 169.56536)"
+  },
+  "color.success.11": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.11",
+      "color.success.11"
+    ],
+    "body": "token('color.success.11')",
+    "description": "oklch(78.524% 0.15591 167.11005)"
+  },
+  "color.success.12": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.12",
+      "color.success.12"
+    ],
+    "body": "token('color.success.12')",
+    "description": "oklch(90.268% 0.07756 166.87581)"
+  },
+  "color.success.2": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.2",
+      "color.success.2"
+    ],
+    "body": "token('color.success.2')",
+    "description": "oklch(21.515% 0.01651 168.18641)"
+  },
+  "color.success.3": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.3",
+      "color.success.3"
+    ],
+    "body": "token('color.success.3')",
+    "description": "oklch(27.36% 0.04342 165.18928)"
+  },
+  "color.success.4": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.4",
+      "color.success.4"
+    ],
+    "body": "token('color.success.4')",
+    "description": "oklch(31.624% 0.05718 167.619)"
+  },
+  "color.success.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.5",
+      "color.success.5"
+    ],
+    "body": "token('color.success.5')",
+    "description": "oklch(36.117% 0.06388 168.16585)"
+  },
+  "color.success.6": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.6",
+      "color.success.6"
+    ],
+    "body": "token('color.success.6')",
+    "description": "oklch(41.272% 0.06868 169.57354)"
+  },
+  "color.success.7": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.7",
+      "color.success.7"
+    ],
+    "body": "token('color.success.7')",
+    "description": "oklch(46.84% 0.07584 170.26817)"
+  },
+  "color.success.8": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.8",
+      "color.success.8"
+    ],
+    "body": "token('color.success.8')",
+    "description": "oklch(53.651% 0.08747 172.23395)"
+  },
+  "color.success.9": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.success.9",
+      "color.success.9"
+    ],
+    "body": "token('color.success.9')",
+    "description": "oklch(64.215% 0.11502 170.7293)"
+  },
+  "color.whiteA.1": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.1",
+      "color.whiteA.1"
+    ],
+    "body": "token('color.whiteA.1')",
+    "description": "oklch(100% 0 0 / 0.05)"
+  },
+  "color.whiteA.10": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.10",
+      "color.whiteA.10"
+    ],
+    "body": "token('color.whiteA.10')",
+    "description": "oklch(100% 0 0 / 0.8)"
+  },
+  "color.whiteA.11": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.11",
+      "color.whiteA.11"
+    ],
+    "body": "token('color.whiteA.11')",
+    "description": "oklch(100% 0 0 / 0.9)"
+  },
+  "color.whiteA.12": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.12",
+      "color.whiteA.12"
+    ],
+    "body": "token('color.whiteA.12')",
+    "description": "oklch(100% 0 0 / 0.95)"
+  },
+  "color.whiteA.2": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.2",
+      "color.whiteA.2"
+    ],
+    "body": "token('color.whiteA.2')",
+    "description": "oklch(100% 0 0 / 0.1)"
+  },
+  "color.whiteA.3": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.3",
+      "color.whiteA.3"
+    ],
+    "body": "token('color.whiteA.3')",
+    "description": "oklch(100% 0 0 / 0.15)"
+  },
+  "color.whiteA.4": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.4",
+      "color.whiteA.4"
+    ],
+    "body": "token('color.whiteA.4')",
+    "description": "oklch(100% 0 0 / 0.2)"
+  },
+  "color.whiteA.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.5",
+      "color.whiteA.5"
+    ],
+    "body": "token('color.whiteA.5')",
+    "description": "oklch(100% 0 0 / 0.3)"
+  },
+  "color.whiteA.6": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.6",
+      "color.whiteA.6"
+    ],
+    "body": "token('color.whiteA.6')",
+    "description": "oklch(100% 0 0 / 0.4)"
+  },
+  "color.whiteA.7": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.7",
+      "color.whiteA.7"
+    ],
+    "body": "token('color.whiteA.7')",
+    "description": "oklch(100% 0 0 / 0.5)"
+  },
+  "color.whiteA.8": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.8",
+      "color.whiteA.8"
+    ],
+    "body": "token('color.whiteA.8')",
+    "description": "oklch(100% 0 0 / 0.6)"
+  },
+  "color.whiteA.9": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.color.whiteA.9",
+      "color.whiteA.9"
+    ],
+    "body": "token('color.whiteA.9')",
+    "description": "oklch(100% 0 0 / 0.7)"
+  },
+  "container.2xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.2xl",
+      "container.2xl"
+    ],
+    "body": "token('container.2xl')",
+    "description": "42rem (672px)"
+  },
+  "container.2xs": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.2xs",
+      "container.2xs"
+    ],
+    "body": "token('container.2xs')",
+    "description": "18rem (288px)"
+  },
+  "container.3xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.3xl",
+      "container.3xl"
+    ],
+    "body": "token('container.3xl')",
+    "description": "48rem (768px)"
+  },
+  "container.3xs": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.3xs",
+      "container.3xs"
+    ],
+    "body": "token('container.3xs')",
+    "description": "16rem (256px)"
+  },
+  "container.4xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.4xl",
+      "container.4xl"
+    ],
+    "body": "token('container.4xl')",
+    "description": "56rem (896px)"
+  },
+  "container.5xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.5xl",
+      "container.5xl"
+    ],
+    "body": "token('container.5xl')",
+    "description": "64rem (1024px)"
+  },
+  "container.6xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.6xl",
+      "container.6xl"
+    ],
+    "body": "token('container.6xl')",
+    "description": "72rem (1152px)"
+  },
+  "container.7xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.7xl",
+      "container.7xl"
+    ],
+    "body": "token('container.7xl')",
+    "description": "80rem (1280px)"
+  },
+  "container.lg": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.lg",
+      "container.lg"
+    ],
+    "body": "token('container.lg')",
+    "description": "32rem (512px)"
+  },
+  "container.md": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.md",
+      "container.md"
+    ],
+    "body": "token('container.md')",
+    "description": "28rem (448px)"
+  },
+  "container.sm": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.sm",
+      "container.sm"
+    ],
+    "body": "token('container.sm')",
+    "description": "24rem (384px)"
+  },
+  "container.xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.xl",
+      "container.xl"
+    ],
+    "body": "token('container.xl')",
+    "description": "36rem (576px)"
+  },
+  "container.xs": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.container.xs",
+      "container.xs"
+    ],
+    "body": "token('container.xs')",
+    "description": "20rem (320px)"
+  },
+  "delay.0": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.delay.0",
+      "delay.0"
+    ],
+    "body": "token('delay.0')",
+    "description": "0s"
+  },
+  "delay.100": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.delay.100",
+      "delay.100"
+    ],
+    "body": "token('delay.100')",
+    "description": "100ms"
+  },
+  "delay.1000": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.delay.1000",
+      "delay.1000"
+    ],
+    "body": "token('delay.1000')",
+    "description": "1000ms"
+  },
+  "delay.150": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.delay.150",
+      "delay.150"
+    ],
+    "body": "token('delay.150')",
+    "description": "150ms"
+  },
+  "delay.200": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.delay.200",
+      "delay.200"
+    ],
+    "body": "token('delay.200')",
+    "description": "200ms"
+  },
+  "delay.300": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.delay.300",
+      "delay.300"
+    ],
+    "body": "token('delay.300')",
+    "description": "300ms"
+  },
+  "delay.500": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.delay.500",
+      "delay.500"
+    ],
+    "body": "token('delay.500')",
+    "description": "500ms"
+  },
+  "delay.700": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.delay.700",
+      "delay.700"
+    ],
+    "body": "token('delay.700')",
+    "description": "700ms"
+  },
+  "delay.75": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.delay.75",
+      "delay.75"
+    ],
+    "body": "token('delay.75')",
+    "description": "75ms"
+  },
+  "duration": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.duration",
+      "duration"
+    ],
+    "body": "token('duration')",
+    "description": "150ms"
+  },
+  "duration.0": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.duration.0",
+      "duration.0"
+    ],
+    "body": "token('duration.0')",
+    "description": "0s"
+  },
+  "duration.100": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.duration.100",
+      "duration.100"
+    ],
+    "body": "token('duration.100')",
+    "description": "100ms"
+  },
+  "duration.1000": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.duration.1000",
+      "duration.1000"
+    ],
+    "body": "token('duration.1000')",
+    "description": "1000ms"
+  },
+  "duration.150": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.duration.150",
+      "duration.150"
+    ],
+    "body": "token('duration.150')",
+    "description": "150ms"
+  },
+  "duration.200": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.duration.200",
+      "duration.200"
+    ],
+    "body": "token('duration.200')",
+    "description": "200ms"
+  },
+  "duration.300": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.duration.300",
+      "duration.300"
+    ],
+    "body": "token('duration.300')",
+    "description": "300ms"
+  },
+  "duration.500": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.duration.500",
+      "duration.500"
+    ],
+    "body": "token('duration.500')",
+    "description": "500ms"
+  },
+  "duration.700": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.duration.700",
+      "duration.700"
+    ],
+    "body": "token('duration.700')",
+    "description": "700ms"
+  },
+  "duration.75": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.duration.75",
+      "duration.75"
+    ],
+    "body": "token('duration.75')",
+    "description": "75ms"
+  },
+  "ease": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.ease",
+      "ease"
+    ],
+    "body": "token('ease')",
+    "description": "cubic-bezier(0.4, 0, 0.2, 1)"
+  },
+  "ease.in": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.ease.in",
+      "ease.in"
+    ],
+    "body": "token('ease.in')",
+    "description": "cubic-bezier(0.4, 0, 1, 1)"
+  },
+  "ease.in-out": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.ease.in-out",
+      "ease.in-out"
+    ],
+    "body": "token('ease.in-out')",
+    "description": "cubic-bezier(0.4, 0, 0.2, 1)"
+  },
+  "ease.linear": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.ease.linear",
+      "ease.linear"
+    ],
+    "body": "token('ease.linear')",
+    "description": "linear"
+  },
+  "ease.out": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.ease.out",
+      "ease.out"
+    ],
+    "body": "token('ease.out')",
+    "description": "cubic-bezier(0, 0, 0.2, 1)"
+  },
+  "font.default": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.font.default",
+      "font.default"
+    ],
+    "body": "token('font.default')",
+    "description": "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+  },
+  "font.weight.bold": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.font.weight.bold",
+      "font.weight.bold"
+    ],
+    "body": "token('font.weight.bold')",
+    "description": "725"
+  },
+  "font.weight.medium": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.font.weight.medium",
+      "font.weight.medium"
+    ],
+    "body": "token('font.weight.medium')",
+    "description": "525"
+  },
+  "font.weight.normal": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.font.weight.normal",
+      "font.weight.normal"
+    ],
+    "body": "token('font.weight.normal')",
+    "description": "425"
+  },
+  "font.weight.semibold": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.font.weight.semibold",
+      "font.weight.semibold"
+    ],
+    "body": "token('font.weight.semibold')",
+    "description": "625"
+  },
+  "radius.2xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.radius.2xl",
+      "radius.2xl"
+    ],
+    "body": "token('radius.2xl')",
+    "description": "1rem (16px)"
+  },
+  "radius.3xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.radius.3xl",
+      "radius.3xl"
+    ],
+    "body": "token('radius.3xl')",
+    "description": "1.5rem (24px)"
+  },
+  "radius.4xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.radius.4xl",
+      "radius.4xl"
+    ],
+    "body": "token('radius.4xl')",
+    "description": "2rem (32px)"
+  },
+  "radius.full": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.radius.full",
+      "radius.full"
+    ],
+    "body": "token('radius.full')",
+    "description": "9999px"
+  },
+  "radius.lg": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.radius.lg",
+      "radius.lg"
+    ],
+    "body": "token('radius.lg')",
+    "description": "0.5rem (8px)"
+  },
+  "radius.md": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.radius.md",
+      "radius.md"
+    ],
+    "body": "token('radius.md')",
+    "description": "0.375rem (6px)"
+  },
+  "radius.none": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.radius.none",
+      "radius.none"
+    ],
+    "body": "token('radius.none')",
+    "description": "0"
+  },
+  "radius.sm": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.radius.sm",
+      "radius.sm"
+    ],
+    "body": "token('radius.sm')",
+    "description": "0.25rem (4px)"
+  },
+  "radius.xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.radius.xl",
+      "radius.xl"
+    ],
+    "body": "token('radius.xl')",
+    "description": "0.75rem (12px)"
+  },
+  "radius.xs": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.radius.xs",
+      "radius.xs"
+    ],
+    "body": "token('radius.xs')",
+    "description": "0.125rem (2px)"
+  },
+  "shadow.lg": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.shadow.lg",
+      "shadow.lg"
+    ],
+    "body": "token('shadow.lg')",
+    "description": "1px 2px 2px hsl(var(--shadow-color) / 0.2), 2px 4px 4px hsl(var(--shadow-color) / 0.2), 4px 8px 8px hsl(var(--shadow-color) / 0.2), 8px 16px 16px hsl(var(--shadow-color) / 0.2), 16px 32px 32px hsl(var(--shadow-color) / 0.2)"
+  },
+  "shadow.md": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.shadow.md",
+      "shadow.md"
+    ],
+    "body": "token('shadow.md')",
+    "description": "1px 2px 2px hsl(var(--shadow-color) / 0.333), 2px 4px 4px hsl(var(--shadow-color) / 0.333), 3px 6px 6px hsl(var(--shadow-color) / 0.333)"
+  },
+  "shadow.sm": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.shadow.sm",
+      "shadow.sm"
+    ],
+    "body": "token('shadow.sm')",
+    "description": "0.5px 1px 1px hsl(var(--shadow-color) / 0.7)"
+  },
+  "spacing": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing",
+      "spacing"
+    ],
+    "body": "token('spacing')",
+    "description": "0.25rem (4px)"
+  },
+  "spacing.0": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.0",
+      "spacing.0"
+    ],
+    "body": "token('spacing.0')",
+    "description": "0"
+  },
+  "spacing.0.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.0.5",
+      "spacing.0.5"
+    ],
+    "body": "token('spacing.0.5')",
+    "description": "0.125rem (2px)"
+  },
+  "spacing.1": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.1",
+      "spacing.1"
+    ],
+    "body": "token('spacing.1')",
+    "description": "0.25rem (4px)"
+  },
+  "spacing.1.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.1.5",
+      "spacing.1.5"
+    ],
+    "body": "token('spacing.1.5')",
+    "description": "0.375rem (6px)"
+  },
+  "spacing.10": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.10",
+      "spacing.10"
+    ],
+    "body": "token('spacing.10')",
+    "description": "2.5rem (40px)"
+  },
+  "spacing.11": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.11",
+      "spacing.11"
+    ],
+    "body": "token('spacing.11')",
+    "description": "2.75rem (44px)"
+  },
+  "spacing.12": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.12",
+      "spacing.12"
+    ],
+    "body": "token('spacing.12')",
+    "description": "3rem (48px)"
+  },
+  "spacing.14": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.14",
+      "spacing.14"
+    ],
+    "body": "token('spacing.14')",
+    "description": "3.5rem (56px)"
+  },
+  "spacing.16": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.16",
+      "spacing.16"
+    ],
+    "body": "token('spacing.16')",
+    "description": "4rem (64px)"
+  },
+  "spacing.2": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.2",
+      "spacing.2"
+    ],
+    "body": "token('spacing.2')",
+    "description": "0.5rem (8px)"
+  },
+  "spacing.2.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.2.5",
+      "spacing.2.5"
+    ],
+    "body": "token('spacing.2.5')",
+    "description": "0.625rem (10px)"
+  },
+  "spacing.20": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.20",
+      "spacing.20"
+    ],
+    "body": "token('spacing.20')",
+    "description": "5rem (80px)"
+  },
+  "spacing.24": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.24",
+      "spacing.24"
+    ],
+    "body": "token('spacing.24')",
+    "description": "6rem (96px)"
+  },
+  "spacing.28": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.28",
+      "spacing.28"
+    ],
+    "body": "token('spacing.28')",
+    "description": "7rem (112px)"
+  },
+  "spacing.3": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.3",
+      "spacing.3"
+    ],
+    "body": "token('spacing.3')",
+    "description": "0.75rem (12px)"
+  },
+  "spacing.3.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.3.5",
+      "spacing.3.5"
+    ],
+    "body": "token('spacing.3.5')",
+    "description": "0.875rem (14px)"
+  },
+  "spacing.32": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.32",
+      "spacing.32"
+    ],
+    "body": "token('spacing.32')",
+    "description": "8rem (128px)"
+  },
+  "spacing.36": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.36",
+      "spacing.36"
+    ],
+    "body": "token('spacing.36')",
+    "description": "9rem (144px)"
+  },
+  "spacing.4": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.4",
+      "spacing.4"
+    ],
+    "body": "token('spacing.4')",
+    "description": "1rem (16px)"
+  },
+  "spacing.40": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.40",
+      "spacing.40"
+    ],
+    "body": "token('spacing.40')",
+    "description": "10rem (160px)"
+  },
+  "spacing.44": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.44",
+      "spacing.44"
+    ],
+    "body": "token('spacing.44')",
+    "description": "11rem (176px)"
+  },
+  "spacing.48": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.48",
+      "spacing.48"
+    ],
+    "body": "token('spacing.48')",
+    "description": "12rem (192px)"
+  },
+  "spacing.5": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.5",
+      "spacing.5"
+    ],
+    "body": "token('spacing.5')",
+    "description": "1.25rem (20px)"
+  },
+  "spacing.52": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.52",
+      "spacing.52"
+    ],
+    "body": "token('spacing.52')",
+    "description": "13rem (208px)"
+  },
+  "spacing.56": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.56",
+      "spacing.56"
+    ],
+    "body": "token('spacing.56')",
+    "description": "14rem (224px)"
+  },
+  "spacing.6": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.6",
+      "spacing.6"
+    ],
+    "body": "token('spacing.6')",
+    "description": "1.5rem (24px)"
+  },
+  "spacing.60": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.60",
+      "spacing.60"
+    ],
+    "body": "token('spacing.60')",
+    "description": "15rem (240px)"
+  },
+  "spacing.64": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.64",
+      "spacing.64"
+    ],
+    "body": "token('spacing.64')",
+    "description": "16rem (256px)"
+  },
+  "spacing.7": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.7",
+      "spacing.7"
+    ],
+    "body": "token('spacing.7')",
+    "description": "1.75rem (28px)"
+  },
+  "spacing.72": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.72",
+      "spacing.72"
+    ],
+    "body": "token('spacing.72')",
+    "description": "18rem (288px)"
+  },
+  "spacing.8": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.8",
+      "spacing.8"
+    ],
+    "body": "token('spacing.8')",
+    "description": "2rem (32px)"
+  },
+  "spacing.80": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.80",
+      "spacing.80"
+    ],
+    "body": "token('spacing.80')",
+    "description": "20rem (320px)"
+  },
+  "spacing.9": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.9",
+      "spacing.9"
+    ],
+    "body": "token('spacing.9')",
+    "description": "2.25rem (36px)"
+  },
+  "spacing.96": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.96",
+      "spacing.96"
+    ],
+    "body": "token('spacing.96')",
+    "description": "24rem (384px)"
+  },
+  "spacing.px": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.spacing.px",
+      "spacing.px"
+    ],
+    "body": "token('spacing.px')",
+    "description": "1px"
+  },
+  "text.2xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.2xl",
+      "text.2xl"
+    ],
+    "body": "token('text.2xl')",
+    "description": "1.5rem (24px)"
+  },
+  "text.2xl.lineHeight": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.2xl.lineHeight",
+      "text.2xl.lineHeight"
+    ],
+    "body": "token('text.2xl.lineHeight')",
+    "description": "calc(2 / 1.5)"
+  },
+  "text.3xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.3xl",
+      "text.3xl"
+    ],
+    "body": "token('text.3xl')",
+    "description": "1.875rem (30px)"
+  },
+  "text.3xl.lineHeight": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.3xl.lineHeight",
+      "text.3xl.lineHeight"
+    ],
+    "body": "token('text.3xl.lineHeight')",
+    "description": "calc(2.25 / 1.875)"
+  },
+  "text.4xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.4xl",
+      "text.4xl"
+    ],
+    "body": "token('text.4xl')",
+    "description": "2.25rem (36px)"
+  },
+  "text.4xl.lineHeight": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.4xl.lineHeight",
+      "text.4xl.lineHeight"
+    ],
+    "body": "token('text.4xl.lineHeight')",
+    "description": "calc(2.5 / 2.25)"
+  },
+  "text.5xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.5xl",
+      "text.5xl"
+    ],
+    "body": "token('text.5xl')",
+    "description": "3rem (48px)"
+  },
+  "text.5xl.lineHeight": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.5xl.lineHeight",
+      "text.5xl.lineHeight"
+    ],
+    "body": "token('text.5xl.lineHeight')",
+    "description": "1"
+  },
+  "text.6xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.6xl",
+      "text.6xl"
+    ],
+    "body": "token('text.6xl')",
+    "description": "3.75rem (60px)"
+  },
+  "text.6xl.lineHeight": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.6xl.lineHeight",
+      "text.6xl.lineHeight"
+    ],
+    "body": "token('text.6xl.lineHeight')",
+    "description": "1"
+  },
+  "text.base": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.base",
+      "text.base"
+    ],
+    "body": "token('text.base')",
+    "description": "1rem (16px)"
+  },
+  "text.base.lineHeight": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.base.lineHeight",
+      "text.base.lineHeight"
+    ],
+    "body": "token('text.base.lineHeight')",
+    "description": "calc(1.5 / 1)"
+  },
+  "text.lg": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.lg",
+      "text.lg"
+    ],
+    "body": "token('text.lg')",
+    "description": "1.125rem (18px)"
+  },
+  "text.lg.lineHeight": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.lg.lineHeight",
+      "text.lg.lineHeight"
+    ],
+    "body": "token('text.lg.lineHeight')",
+    "description": "calc(1.75 / 1.125)"
+  },
+  "text.sm": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.sm",
+      "text.sm"
+    ],
+    "body": "token('text.sm')",
+    "description": "0.875rem (14px)"
+  },
+  "text.sm.lineHeight": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.sm.lineHeight",
+      "text.sm.lineHeight"
+    ],
+    "body": "token('text.sm.lineHeight')",
+    "description": "calc(1.25 / 0.875)"
+  },
+  "text.xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.xl",
+      "text.xl"
+    ],
+    "body": "token('text.xl')",
+    "description": "1.25rem (20px)"
+  },
+  "text.xl.lineHeight": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.xl.lineHeight",
+      "text.xl.lineHeight"
+    ],
+    "body": "token('text.xl.lineHeight')",
+    "description": "calc(1.75 / 1.25)"
+  },
+  "text.xs": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.xs",
+      "text.xs"
+    ],
+    "body": "token('text.xs')",
+    "description": "0.75rem (12px)"
+  },
+  "text.xs.lineHeight": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.text.xs.lineHeight",
+      "text.xs.lineHeight"
+    ],
+    "body": "token('text.xs.lineHeight')",
+    "description": "calc(1 / 0.75)"
+  },
+  "transition": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.transition",
+      "transition"
+    ],
+    "body": "token('transition')",
+    "description": "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter"
+  },
+  "transition.all": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.transition.all",
+      "transition.all"
+    ],
+    "body": "token('transition.all')",
+    "description": "all"
+  },
+  "transition.colors": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.transition.colors",
+      "transition.colors"
+    ],
+    "body": "token('transition.colors')",
+    "description": "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke"
+  },
+  "transition.none": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.transition.none",
+      "transition.none"
+    ],
+    "body": "token('transition.none')",
+    "description": "none"
+  },
+  "transition.opacity": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.transition.opacity",
+      "transition.opacity"
+    ],
+    "body": "token('transition.opacity')",
+    "description": "opacity"
+  },
+  "transition.shadow": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.transition.shadow",
+      "transition.shadow"
+    ],
+    "body": "token('transition.shadow')",
+    "description": "box-shadow"
+  },
+  "transition.transform": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token.transition.transform",
+      "transition.transform"
+    ],
+    "body": "token('transition.transform')",
+    "description": "transform"
+  },
+  "@token-text '2xl'": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token-text.2xl",
+      "token-text 2xl",
+      "@token-text '2xl'"
+    ],
+    "body": "@token-text '2xl';",
+    "description": "font-size: 1.5rem (24px); line-height: calc(2 / 1.5)"
+  },
+  "@token-text '3xl'": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token-text.3xl",
+      "token-text 3xl",
+      "@token-text '3xl'"
+    ],
+    "body": "@token-text '3xl';",
+    "description": "font-size: 1.875rem (30px); line-height: calc(2.25 / 1.875)"
+  },
+  "@token-text '4xl'": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token-text.4xl",
+      "token-text 4xl",
+      "@token-text '4xl'"
+    ],
+    "body": "@token-text '4xl';",
+    "description": "font-size: 2.25rem (36px); line-height: calc(2.5 / 2.25)"
+  },
+  "@token-text '5xl'": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token-text.5xl",
+      "token-text 5xl",
+      "@token-text '5xl'"
+    ],
+    "body": "@token-text '5xl';",
+    "description": "font-size: 3rem (48px); line-height: 1"
+  },
+  "@token-text '6xl'": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token-text.6xl",
+      "token-text 6xl",
+      "@token-text '6xl'"
+    ],
+    "body": "@token-text '6xl';",
+    "description": "font-size: 3.75rem (60px); line-height: 1"
+  },
+  "@token-text base": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token-text.base",
+      "token-text base",
+      "@token-text base"
+    ],
+    "body": "@token-text base;",
+    "description": "font-size: 1rem (16px); line-height: calc(1.5 / 1)"
+  },
+  "@token-text lg": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token-text.lg",
+      "token-text lg",
+      "@token-text lg"
+    ],
+    "body": "@token-text lg;",
+    "description": "font-size: 1.125rem (18px); line-height: calc(1.75 / 1.125)"
+  },
+  "@token-text sm": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token-text.sm",
+      "token-text sm",
+      "@token-text sm"
+    ],
+    "body": "@token-text sm;",
+    "description": "font-size: 0.875rem (14px); line-height: calc(1.25 / 0.875)"
+  },
+  "@token-text xl": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token-text.xl",
+      "token-text xl",
+      "@token-text xl"
+    ],
+    "body": "@token-text xl;",
+    "description": "font-size: 1.25rem (20px); line-height: calc(1.75 / 1.25)"
+  },
+  "@token-text xs": {
+    "scope": "css,scss,less,postcss",
+    "prefix": [
+      "token-text.xs",
+      "token-text xs",
+      "@token-text xs"
+    ],
+    "body": "@token-text xs;",
+    "description": "font-size: 0.75rem (12px); line-height: calc(1 / 0.75)"
+  }
+}

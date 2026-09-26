@@ -1,0 +1,194 @@
+.container {
+  max-inline-size: token('container.5xl');
+  margin-inline: auto;
+  padding-inline: token('spacing.4');
+}
+
+.header {
+  border-inline: 1px solid token('color.slate.4');
+  border-block-end: 1px solid token('color.slate.4');
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: token('spacing.2');
+  border-end-end-radius: token('radius.xl');
+  border-end-start-radius: token('radius.xl');
+}
+
+.headerLogo {
+  border-inline-end: 1px solid token('color.slate.4');
+  padding: token('spacing.4');
+}
+
+.liquidMetalLogo {
+  inline-size: token('spacing.16');
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+
+.button {
+  align-self: center;
+  display: inline-flex;
+  gap: token('spacing.2');
+  align-items: center;
+  block-size: token('spacing.10');
+  padding-inline: token('spacing.4');
+  border-radius: token('radius.full');
+  background-color: token('color.slate.4');
+  color: token('color.slate.12');
+  font-weight: token('font.weight.semibold');
+}
+
+.headerLinkWrapper {
+  border-inline-start: 1px solid token('color.slate.4');
+}
+
+.headerLink {
+  display: flex;
+  block-size: 100%;
+  align-items: center;
+  padding-inline: token('spacing.6');
+  transition: background-color token('duration.100') token('ease.in');
+  font-size: token('text.3xl');
+
+  &:hover {
+    background-color: token('color.slate.2');
+  }
+}
+
+.heroWrapper {
+  position: relative;
+  overflow: hidden;
+  margin-block: token('spacing.4');
+  border-radius: token('radius.xl');
+  background-color: token('color.slate.2');
+  padding: token('spacing.4');
+  border: 1px solid token('color.slate.4');
+  box-shadow: 0 0 0 2px token('color.slate.2');
+}
+
+.heroBg {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url('/media/ooorganize-bg.svg');
+  background-position: center;
+  background-size: 200px;
+  mask-image: linear-gradient(to right, transparent, black);
+}
+
+.heroBadge {
+  font-size: token('text.sm');
+  position: relative;
+  z-index: 1;
+  border-radius: token('radius.full');
+  background-color: token('color.slate.12');
+  color: token('color.slate.1');
+  inline-size: fit-content;
+  line-height: 1;
+  padding-inline: token('spacing.1');
+  padding-block: token('spacing.0.5');
+}
+
+.heroText {
+  @token-text '4xl';
+
+  position: relative;
+  z-index: 1;
+  margin-block-start: token('spacing.4');
+}
+
+.heroTextSecondary {
+  @token-text lg;
+
+  color: token('color.slate.11');
+  margin-block-start: token('spacing.2');
+}
+
+.introContent {
+  @token-text lg;
+
+  border-block-start: 1px solid token('color.slate.4');
+  border-inline: 1px solid token('color.slate.4');
+  border-start-end-radius: token('radius.xl');
+  border-start-start-radius: token('radius.xl');
+}
+
+.introTextPrimary {
+  padding: token('spacing.4');
+}
+
+.introTextSecondary {
+  padding: token('spacing.4');
+}
+
+.link {
+  text-decoration: underline dotted token('color.slate.11');
+  text-underline-offset: 0.25em;
+  font-weight: token('font.weight.semibold');
+  transition: text-decoration-color token('duration.100') token('ease.in');
+
+  &:hover {
+    text-decoration-color: token('color.slate.12');
+  }
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  gap: token('spacing.6');
+  padding-block: token('spacing.4');
+  border-block-start: 1px solid token('color.slate.4');
+}
+
+.footerLink {
+  font-size: token('text.xl');
+  color: token('color.slate.11');
+  transition: color token('duration.100') token('ease.in');
+
+  &:hover {
+    color: token('color.slate.12');
+  }
+}
+
+.section {
+  border-inline: 1px solid token('color.slate.4');
+  border-block-start: 1px solid token('color.slate.4');
+  min-inline-size: 0;
+}
+
+.sectionTitle {
+  @token-text '3xl';
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: token('spacing.2');
+  padding: token('spacing.4');
+  border-block-end: 1px solid token('color.slate.4');
+}
+
+.sectionTitleIcon {
+  inline-size: token('spacing.6');
+  color: token('color.slate.5');
+  flex: 0;
+}
+
+.codeWrapper {
+  position: relative;
+  border-block-end: 1px solid token('color.slate.4');
+  overflow-x: auto;
+
+  &:last-of-type {
+    border-block-end: 0;
+  }
+}
+
+.codeScroll {
+  display: inline-block;
+  min-inline-size: 100%;
+  padding: token('spacing.4');
+  vertical-align: top;
+  box-sizing: border-box;
+}

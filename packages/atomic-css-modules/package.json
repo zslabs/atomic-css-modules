@@ -1,0 +1,75 @@
+{
+  "name": "@zslabs/atomic-css-modules",
+  "version": "0.1.0",
+  "description": "Extract repeated CSS Modules declarations into shared atomic classes",
+  "keywords": [
+    "atomic-css",
+    "css-modules",
+    "vite",
+    "vite-plugin"
+  ],
+  "homepage": "https://github.com/zslabs/atomic-css-modules/tree/main/packages/atomic-css-modules#readme",
+  "bugs": {
+    "url": "https://github.com/zslabs/atomic-css-modules/issues"
+  },
+  "license": "MIT",
+  "author": "Zach Schnackel <info@zslabs.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zslabs/atomic-css-modules.git",
+    "directory": "packages/atomic-css-modules"
+  },
+  "files": [
+    "dist",
+    "GUIDE.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./vite": {
+      "types": "./dist/vite-plugin.d.ts",
+      "import": "./dist/vite-plugin.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepack": "npm run build",
+    "build": "tsc -p tsconfig.json",
+    "type:check": "tsc --project tsconfig.json --pretty --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "bench": "vitest run --config vitest.bench.config.ts --reporter=verbose",
+    "dump-registry": "node --experimental-strip-types ./scripts/dump-registry.ts"
+  },
+  "dependencies": {
+    "lightningcss": "1.33.0",
+    "mdn-data": "2.37.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.1",
+    "vitest": "5.0.1"
+  },
+  "peerDependencies": {
+    "vite": "^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": "^20.17.0 || >=22.5.0"
+  }
+}

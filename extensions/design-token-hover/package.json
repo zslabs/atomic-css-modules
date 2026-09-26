@@ -1,0 +1,20 @@
+{
+  "name": "design-token-hover",
+  "displayName": "Design Token Hover",
+  "version": "0.0.1",
+  "description": "Hover preview for token('path') and @token-text design tokens",
+  "categories": [
+    "Other"
+  ],
+  "publisher": "local",
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:css",
+    "onLanguage:less",
+    "onLanguage:postcss",
+    "onLanguage:scss"
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  }
+}

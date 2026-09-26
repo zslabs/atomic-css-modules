@@ -1,0 +1,5 @@
+.copy {
+  position: absolute;
+  inset-block-start: token('spacing.4');
+  inset-inline-end: token('spacing.4');
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "import", "oxc", "react"],
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    "packages/*/dist",
+    "web/dist",
+    "web/.nitro",
+    "web/.output",
+    "web/.tanstack",
+    "web/src/routeTree.gen.ts",
+    ".vscode/tokens.code-snippets",
+    ".vscode/tokens.lookup.json"
+  ],
+  "env": {
+    "node": true,
+    "es2026": true
+  },
+  "overrides": [
+    {
+      "files": ["web/**"],
+      "env": {
+        "browser": true,
+        "node": true,
+        "es2026": true
+      }
+    }
+  ]
+}

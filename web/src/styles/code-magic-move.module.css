@@ -1,0 +1,64 @@
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  isolation: isolate;
+  border-block-end: 1px solid token('color.slate.3');
+}
+
+.button {
+  @token-text 'xl';
+
+  position: relative;
+  padding-block: token('spacing.1.5');
+  padding-inline: token('spacing.4');
+  text-transform: uppercase;
+  transition: background-color token('duration.100') token('ease.in');
+
+  &:hover {
+    background-color: token('color.slate.2');
+  }
+}
+
+.label {
+  position: relative;
+  z-index: 1;
+  color: token('color.slate.12');
+  mix-blend-mode: exclusion;
+}
+
+.pill {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: token('color.slate.12');
+}
+
+.codeWrapper {
+  position: relative;
+  block-size: token('spacing.96');
+  min-inline-size: 0;
+  overflow: auto;
+  mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - token('spacing.24')),
+    transparent
+  );
+}
+
+.codeScroll {
+  display: inline-block;
+  min-inline-size: 100%;
+  padding: token('spacing.4');
+  vertical-align: top;
+  box-sizing: border-box;
+}
+
+.outputDecoration {
+  pointer-events: none;
+  position: absolute;
+  inset-block-start: token('spacing.28');
+  inset-inline-start: token('spacing.4');
+  font-size: token('text.4xl');
+  color: token('color.danger.9');
+  line-height: 1;
+}
