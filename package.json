@@ -1,6 +1,7 @@
 {
   "name": "atomic-css-modules-monorepo",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*",
     "web"
@@ -12,6 +13,7 @@
     "test:watch": "npm run test:watch -w @zslabs/atomic-css-modules",
     "bench": "npm run bench -w @zslabs/atomic-css-modules",
     "registry": "npm run dump-registry -w @zslabs/atomic-css-modules --",
+    "release": "node --experimental-strip-types ./scripts/release.ts",
     "type:check": "npm run type:check -w @zslabs/atomic-css-modules",
     "lint": "oxlint . --fix",
     "lint:css": "stylelint \"**/*.{css,module.css}\"",
