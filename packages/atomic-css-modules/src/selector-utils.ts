@@ -165,6 +165,29 @@ export function skipReasonForSelectors(selectors: SelectorList): SkipReason {
   return skipReasonForSelector(selectors[0] ?? [])
 }
 
+/**
+ * Parse a selector string (as stylelint/PostCSS provides) into a LightningCSS
+ * SelectorList so shared classifiers can run without inventing a second AST.
+ */
+export function parseSelectorList(selector: string): SelectorList {
+  const trimmed = selector.trim()
+  if (trimmed.length === 0) return []
+
+  let selectors: SelectorList = []
+  transform({
+    filename: 'parse-selector.css',
+    code: Buffer.from(`${trimmed}{--x:0}`),
+    visitor: {
+      Rule(rule) {
+        if (rule.type === 'style') {
+          selectors = rule.value.selectors
+        }
+      },
+    },
+  })
+  return selectors
+}
+
 export function printSelectorList(selectors: SelectorList): string {
   if (selectors.length === 0) return ''
   const result = transform({

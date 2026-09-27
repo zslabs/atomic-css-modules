@@ -1,0 +1,63 @@
+{
+  "name": "@zslabs/stylelint-atomic-css-modules",
+  "version": "0.1.0",
+  "description": "Stylelint plugin that warns when CSS Modules styles cannot be composed by atomic-css-modules",
+  "keywords": [
+    "atomic-css",
+    "composes",
+    "css-modules",
+    "stylelint",
+    "stylelint-plugin"
+  ],
+  "homepage": "https://github.com/zslabs/atomic-css-modules/tree/main/packages/stylelint-atomic-css-modules#readme",
+  "bugs": {
+    "url": "https://github.com/zslabs/atomic-css-modules/issues"
+  },
+  "license": "MIT",
+  "author": "Zach Schnackel <info@zslabs.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zslabs/atomic-css-modules.git",
+    "directory": "packages/stylelint-atomic-css-modules"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepack": "npm run build",
+    "build": "tsc -p tsconfig.json",
+    "type:check": "tsc --project tsconfig.json --pretty --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@zslabs/atomic-css-modules": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.2",
+    "stylelint": "17.15.0",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1"
+  },
+  "peerDependencies": {
+    "stylelint": "^16.0.0 || ^17.0.0"
+  },
+  "engines": {
+    "node": "^20.17.0 || >=22.5.0"
+  }
+}

@@ -9,6 +9,17 @@ export {
 } from './report.js'
 export { rewriteFiles } from './rewrite.js'
 export { scanFiles } from './scan.js'
+export { findShorthandConflicts } from './shorthand-groups.js'
+export {
+  classifyEligibleGroup,
+  classifySelector,
+  parseSelectorList,
+  printSelectorList,
+  resolveNesting,
+  skipReasonForSelector,
+  skipReasonForSelectors,
+} from './selector-utils.js'
+export type { SelectorClassification } from './selector-utils.js'
 export type {
   Atom,
   AtomCondition,
