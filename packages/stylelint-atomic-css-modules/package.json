@@ -46,7 +46,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@zslabs/atomic-css-modules": "^0.1.0"
+    "@zslabs/atomic-css-modules": "^0.2.0"
   },
   "devDependencies": {
     "@types/node": "26.6.2",

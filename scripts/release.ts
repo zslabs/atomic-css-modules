@@ -1,9 +1,11 @@
-// Publish @zslabs/atomic-css-modules and create a matching GitHub release.
+// Publish workspace packages and create a matching GitHub release.
 //
 // Usage (from the repo root, after `npm login`):
 //   npm run release
 //
-// The version comes from packages/atomic-css-modules/package.json.
+// Core version comes from packages/atomic-css-modules/package.json (drives the
+// git tag / GitHub release). Also publishes @zslabs/stylelint-atomic-css-modules
+// at whatever version is in its package.json.
 // Re-running is safe: an existing npm version, git tag, or GitHub release is left in place.
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
@@ -13,6 +15,10 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const pkgPath = path.join(root, 'packages/atomic-css-modules/package.json')
 const changelogPath = path.join(root, 'packages/atomic-css-modules/CHANGELOG.md')
+const stylelintPkgPath = path.join(
+  root,
+  'packages/stylelint-atomic-css-modules/package.json'
+)
 
 interface PackageJson {
   name: string
@@ -44,7 +50,11 @@ function commandOk(command: string, args: readonly string[]): boolean {
 }
 
 function readPackage(): PackageJson {
-  const parsed: unknown = JSON.parse(readFileSync(pkgPath, 'utf8'))
+  return readPackageAt(pkgPath)
+}
+
+function readPackageAt(filePath: string): PackageJson {
+  const parsed: unknown = JSON.parse(readFileSync(filePath, 'utf8'))
   if (
     typeof parsed !== 'object' ||
     parsed === null ||
@@ -53,7 +63,7 @@ function readPackage(): PackageJson {
     typeof parsed.name !== 'string' ||
     typeof parsed.version !== 'string'
   ) {
-    throw new Error(`Could not read name and version from ${pkgPath}`)
+    throw new Error(`Could not read name and version from ${filePath}`)
   }
   return { name: parsed.name, version: parsed.version }
 }
@@ -97,6 +107,7 @@ function versionIsPublished(name: string, version: string): boolean {
 }
 
 const pkg = readPackage()
+const stylelintPkg = readPackageAt(stylelintPkgPath)
 const tag = `v${pkg.version}`
 const notes = changelogNotes(pkg.version)
 
@@ -105,12 +116,21 @@ assertCleanTree()
 
 console.log(`Testing ${pkg.name}@${pkg.version}`)
 run('npm', ['test', '-w', pkg.name])
+console.log(`Testing ${stylelintPkg.name}@${stylelintPkg.version}`)
+run('npm', ['test', '-w', stylelintPkg.name])
 
 if (versionIsPublished(pkg.name, pkg.version)) {
   console.log(`${pkg.name}@${pkg.version} is already on npm`)
 } else {
   console.log(`Publishing ${pkg.name}@${pkg.version}`)
   run('npm', ['publish', '-w', pkg.name, '--access', 'public'])
+}
+
+if (versionIsPublished(stylelintPkg.name, stylelintPkg.version)) {
+  console.log(`${stylelintPkg.name}@${stylelintPkg.version} is already on npm`)
+} else {
+  console.log(`Publishing ${stylelintPkg.name}@${stylelintPkg.version}`)
+  run('npm', ['publish', '-w', stylelintPkg.name, '--access', 'public'])
 }
 
 if (commandOk('git', ['rev-parse', tag])) {
@@ -141,3 +161,4 @@ if (commandOk('gh', ['release', 'view', tag])) {
 }
 
 console.log(`Released ${pkg.name}@${pkg.version}`)
+console.log(`Released ${stylelintPkg.name}@${stylelintPkg.version}`)
