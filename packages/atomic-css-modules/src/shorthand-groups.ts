@@ -67,6 +67,32 @@ function setsOverlap(left: Set<string>, right: Set<string>): boolean {
   return false
 }
 
+function isProperSuperset(left: Set<string>, right: Set<string>): boolean {
+  if (left.size <= right.size) return false
+  for (const value of right) {
+    if (!left.has(value)) return false
+  }
+  return true
+}
+
+/**
+ * Cascade-oriented property order for the atomic registry: shorthands before
+ * their longhands so a later longhand atom can override when both classes are
+ * on the same element. Non-nested / non-overlapping pairs compare equal (0);
+ * callers should break ties (e.g. by property name).
+ */
+export function comparePropertyCascadeOrder(
+  left: string,
+  right: string
+): number {
+  if (left === right) return 0
+  const leftCoverage = coverage(left)
+  const rightCoverage = coverage(right)
+  if (isProperSuperset(leftCoverage, rightCoverage)) return -1
+  if (isProperSuperset(rightCoverage, leftCoverage)) return 1
+  return 0
+}
+
 /**
  * Properties in one rule that are unsafe to atomize because they write the
  * same longhand: a shorthand plus one of its longhands, or two shorthands

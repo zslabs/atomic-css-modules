@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { findShorthandConflicts } from '../src/shorthand-groups.js'
+import {
+  comparePropertyCascadeOrder,
+  findShorthandConflicts,
+} from '../src/shorthand-groups.js'
 
 function sorted(values: Set<string>): string[] {
   return [...values].sort()
@@ -27,5 +30,26 @@ describe('findShorthandConflicts', () => {
     const conflicts = findShorthandConflicts(['margin', 'margin-left', 'color'])
     expect(conflicts.has('color')).toBe(false)
     expect(conflicts.has('margin')).toBe(true)
+  })
+})
+
+describe('comparePropertyCascadeOrder', () => {
+  it('orders a shorthand before its longhand', () => {
+    expect(comparePropertyCascadeOrder('margin', 'margin-left')).toBeLessThan(0)
+    expect(comparePropertyCascadeOrder('margin-left', 'margin')).toBeGreaterThan(
+      0
+    )
+  })
+
+  it('treats unrelated properties as equal on the cascade axis', () => {
+    expect(comparePropertyCascadeOrder('color', 'display')).toBe(0)
+  })
+
+  it('treats sibling longhands as equal on the cascade axis', () => {
+    expect(comparePropertyCascadeOrder('font-size', 'font-family')).toBe(0)
+  })
+
+  it('does not nest overlapping shorthands that are not parent/child', () => {
+    expect(comparePropertyCascadeOrder('border-width', 'border-top')).toBe(0)
   })
 })

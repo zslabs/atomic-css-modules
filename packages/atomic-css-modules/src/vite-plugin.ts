@@ -147,6 +147,7 @@ export function atomicCssModules(
     })
     const filePaths: string[] = []
     for await (const match of matches) filePaths.push(path.resolve(root, match))
+    filePaths.sort((left, right) => left.localeCompare(right))
     cache.retain(filePaths)
     await Promise.all(
       filePaths.map(async (filePath) => {
