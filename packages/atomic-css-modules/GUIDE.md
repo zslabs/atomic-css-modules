@@ -23,13 +23,13 @@ If a rule has a shorthand and any of its longhands (`margin` + `margin-left`), n
 
 ## Registry order
 
-The shared registry is emitted in a **deterministic** order:
+The shared registry is emitted in a fixed order:
 
 1. Shorthands before their longhands (so `margin` then `margin-top` when both atoms exist)
 2. Then by property name
 3. Then by atom key (value / `!important` / pseudo / at-rule condition)
 
-Equal-specificity atom classes resolve by this stylesheet order, not by `composes` name order or the HTML `class` attribute. Stacking two local classes that set the **same** property to different values is not a supported merge API; keep one rule or use `/* atomic: skip */`.
+Equal-specificity atoms win by that stylesheet order. Changing `composes` name order or the HTML `class` attribute does not change which atom wins. If two local classes set the same property to different values, keep the declarations on one rule or use `/* atomic: skip */`.
 
 ## Size and compression
 
@@ -37,6 +37,6 @@ Raw registry bytes can shrink when the same declarations repeat. Over the wire, 
 
 ## Non-goals
 
-- Modeling “last composed class wins” for identical properties across stacked local classes
+- Last-wins overrides from stacking local classes that set the same property
 - Atomizing combinators or compounds while still using Modules `composes`
 - Reimplementing CSS Modules compose resolution here
