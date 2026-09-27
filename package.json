@@ -1,20 +1,20 @@
 {
   "name": "atomic-css-modules-monorepo",
   "private": true,
-  "type": "module",
   "workspaces": [
     "packages/*",
     "web"
   ],
+  "type": "module",
   "scripts": {
     "prepare": "if [ -x node_modules/.bin/simple-git-hooks ]; then simple-git-hooks; fi",
-    "build": "npm run build -w @zslabs/atomic-css-modules",
-    "test": "npm run test -w @zslabs/atomic-css-modules",
+    "build": "npm run build -w @zslabs/atomic-css-modules && npm run build -w @zslabs/stylelint-atomic-css-modules",
+    "test": "npm run test -w @zslabs/atomic-css-modules && npm run test -w @zslabs/stylelint-atomic-css-modules",
     "test:watch": "npm run test:watch -w @zslabs/atomic-css-modules",
     "bench": "npm run bench -w @zslabs/atomic-css-modules",
     "registry": "npm run dump-registry -w @zslabs/atomic-css-modules --",
     "release": "node --experimental-strip-types ./scripts/release.ts",
-    "type:check": "npm run type:check -w @zslabs/atomic-css-modules",
+    "type:check": "npm run type:check -w @zslabs/atomic-css-modules && npm run type:check -w @zslabs/stylelint-atomic-css-modules",
     "lint": "oxlint . --fix",
     "lint:css": "stylelint \"**/*.{css,module.css}\"",
     "format": "oxfmt",
@@ -26,6 +26,7 @@
     "tokens:hover:install": "node ./extensions/design-token-hover/install.mjs"
   },
   "devDependencies": {
+    "@zslabs/stylelint-atomic-css-modules": "*",
     "nano-staged": "1.0.2",
     "oxfmt": "0.70.0",
     "oxlint": "1.85.0",

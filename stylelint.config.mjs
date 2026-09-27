@@ -1,7 +1,7 @@
 /** @type {import('stylelint').Config} */
 export default {
   extends: ['stylelint-config-standard'],
-  plugins: ['stylelint-use-logical'],
+  plugins: ['stylelint-use-logical', '@zslabs/stylelint-atomic-css-modules'],
   languageOptions: {
     syntax: {
       atRules: {
@@ -25,6 +25,14 @@ export default {
     ],
     'csstools/use-logical': 'always',
   },
+  overrides: [
+    {
+      files: ['**/*.module.css'],
+      rules: {
+        'atomic-css-modules/no-non-composable': true,
+      },
+    },
+  ],
   ignoreFiles: [
     '**/node_modules/**',
     '**/dist/**',

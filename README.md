@@ -4,6 +4,8 @@ Monorepo for [`@zslabs/atomic-css-modules`](./packages/atomic-css-modules): extr
 
 Package docs (install, options, API): [`packages/atomic-css-modules/README.md`](./packages/atomic-css-modules/README.md). Selector eligibility: [`GUIDE.md`](./packages/atomic-css-modules/GUIDE.md).
 
+Stylelint plugin for non-composable styles: [`packages/stylelint-atomic-css-modules`](./packages/stylelint-atomic-css-modules).
+
 ## Install
 
 ```sh
@@ -23,13 +25,13 @@ export default defineConfig({
 })
 ```
 
-| Option       | Default                           | Notes                                              |
-| ------------ | --------------------------------- | -------------------------------------------------- |
-| `include`    | `**/*.module.css`                 | Globs relative to the Vite root                    |
-| `exclude`    | `**/node_modules/**`              |                                                    |
+| Option       | Default                           | Notes                                               |
+| ------------ | --------------------------------- | --------------------------------------------------- |
+| `include`    | `**/*.module.css`                 | Globs relative to the Vite root                     |
+| `exclude`    | `**/node_modules/**`              |                                                     |
 | `debugNames` | `true` in serve, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes |
-| `report`     | `"summary"`                       | `"verbose"` lists each skipped selector            |
-| `preprocess` | —                                 | `(code, filePath) => code` before scan/atomize     |
+| `report`     | `"summary"`                       | `"verbose"` lists each skipped selector             |
+| `preprocess` | —                                 | `(code, filePath) => code` before scan/atomize      |
 
 ## How it works
 
