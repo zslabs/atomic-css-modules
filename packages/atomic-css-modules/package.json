@@ -1,6 +1,6 @@
 {
   "name": "@zslabs/atomic-css-modules",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Extract repeated CSS Modules declarations into shared atomic classes",
   "keywords": [
     "atomic-css",

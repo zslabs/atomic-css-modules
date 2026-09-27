@@ -2,10 +2,11 @@
 
 All notable changes to `@zslabs/atomic-css-modules` are documented here.
 
-## Unreleased
+## 0.2.1
 
 - Emit the atomic registry in deterministic cascade order: shorthands before their longhands, then by property name, then by atom key
 - Merge scanned files by sorted path so registry identity no longer depends on update/glob completion order
+- Clarify caveats: stick to CSS Modules local classes; do not stack atomized classes to override the same property
 
 ## 0.2.0
 
