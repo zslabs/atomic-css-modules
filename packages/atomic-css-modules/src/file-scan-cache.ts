@@ -111,7 +111,11 @@ export class FileScanCache {
     const atoms = new Map<string, Atom>()
     const skips: AtomizationSkip[] = []
 
-    for (const entry of this.entries.values()) {
+    const entries = [...this.entries.values()].sort((left, right) =>
+      left.scan.filePath.localeCompare(right.scan.filePath)
+    )
+
+    for (const entry of entries) {
       files.push({ filePath: entry.scan.filePath, code: entry.code })
       // Clone rules so remapped hashes do not mutate the per-file cache entry
       // until we write them back via sync (we sync the clones used for rewrite).
@@ -133,7 +137,7 @@ export class FileScanCache {
     ensureUniqueAtomNames(atoms)
     syncScanAtomHashes(scanFilesResult, atoms)
     // Persist remapped hashes onto cached scans so getScan matches rewrite.
-    for (const [index, entry] of [...this.entries.values()].entries()) {
+    for (const [index, entry] of entries.entries()) {
       const remapped = scanFilesResult[index]
       if (remapped) entry.scan = remapped
     }

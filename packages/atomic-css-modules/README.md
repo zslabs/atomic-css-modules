@@ -91,7 +91,7 @@ Add `/* atomic: skip */` before a selector, or as the first comment in a rule bl
 
 - Only selectors that CSS Modules can `composes` are atomized (see the guide).
 - Shorthand + longhand in the same rule skip those properties for that rule.
-- Cross-file cascade and specificity are not modeled; if shared atoms would break ordering, use `/* atomic: skip */`.
+- Stick to CSS Modules local classes. Do not stack atomized classes, or another utility system on the same node, to override the same property. Prefer one class, or `/* atomic: skip */` when sharing would be wrong.
 - On small sheets, gzip/brotli often erase the atomic class win (many one-declaration rules compress worse than fewer larger ones). The payoff shows up when UI grows against a shared token surface: Modules CSS scales with components, the atom set scales with the design system.
 - This is **0.x**: the supported surface below is stable within a minor when practical, but breaking changes may land before 1.0.
 
@@ -104,7 +104,7 @@ Add `/* atomic: skip */` before a selector, or as the first comment in a rule bl
 
 **Internal** (exported for advanced use and tests; may change without a major bump)
 
-- `FileScanCache`, `scanFiles`, `rewriteFiles`, `buildRegistryCss`, `ensureUniqueAtomNames`, `syncScanAtomHashes`, and lower-level atom/scan types
+- `FileScanCache`, `scanFiles`, `rewriteFiles`, `buildRegistryCss`, `sortAtomsForRegistry`, `comparePropertyCascadeOrder`, `ensureUniqueAtomNames`, `syncScanAtomHashes`, and lower-level atom/scan types
 
 ```ts
 import { processCssModules } from '@zslabs/atomic-css-modules'

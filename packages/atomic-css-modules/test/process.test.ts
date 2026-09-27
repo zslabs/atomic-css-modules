@@ -700,6 +700,38 @@ describe('shorthand and longhand in the same rule', () => {
   })
 })
 
+describe('registry cascade order', () => {
+  it('emits shorthand atoms before their longhand atoms', () => {
+    const result = processCssModules(
+      [
+        {
+          filePath: 'longhand.module.css',
+          code: '.tight { margin-top: 4px; }\n',
+        },
+        {
+          filePath: 'shorthand.module.css',
+          code: '.box { margin: 16px; }\n',
+        },
+      ],
+      { registryImportPath }
+    )
+    const marginAt = result.registryCss.search(/margin:\s*16px/)
+    const marginTopAt = result.registryCss.search(/margin-top:\s*4px/)
+    expect(marginAt).toBeGreaterThanOrEqual(0)
+    expect(marginTopAt).toBeGreaterThanOrEqual(0)
+    expect(marginAt).toBeLessThan(marginTopAt)
+  })
+
+  it('orders non-overlapping properties by property name', () => {
+    const { registryCss } = run(`.a { display: flex; color: red; }`)
+    const colorAt = registryCss.search(/color:\s*(red|#f00)/)
+    const displayAt = registryCss.search(/display:\s*flex/)
+    expect(colorAt).toBeGreaterThanOrEqual(0)
+    expect(displayAt).toBeGreaterThanOrEqual(0)
+    expect(colorAt).toBeLessThan(displayAt)
+  })
+})
+
 describe('custom properties', () => {
   it('atomizes custom properties', () => {
     const { code, registryCss } = run(`.a { --brand: blue; color: red; }`)

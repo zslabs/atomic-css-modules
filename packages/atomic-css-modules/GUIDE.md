@@ -21,12 +21,22 @@ A trailing simple pseudo-class or pseudo-element (no arguments) is eligible. Fun
 
 If a rule has a shorthand and any of its longhands (`margin` + `margin-left`), neither those properties atomize for that rule. Sibling longhands of the same shorthand (`font-family` + `font-size`) still do.
 
+## Registry order
+
+The shared registry is emitted in a fixed order:
+
+1. Shorthands before their longhands (so `margin` then `margin-top` when both atoms exist)
+2. Then by property name
+3. Then by atom key (value / `!important` / pseudo / at-rule condition)
+
+Equal-specificity atoms win by that stylesheet order. Changing `composes` name order or the HTML `class` attribute does not change which atom wins. If two local classes set the same property to different values, keep the declarations on one rule or use `/* atomic: skip */`.
+
 ## Size and compression
 
 Raw registry bytes can shrink when the same declarations repeat. Over the wire, gzip/brotli often close the gap on small stylesheets; savings show up at scale when many components share a design-token surface. See [Caveats](./README.md#caveats) in the README.
 
 ## Non-goals
 
-- Cross-file cascade / specificity modeling
+- Last-wins overrides from stacking local classes that set the same property
 - Atomizing combinators or compounds while still using Modules `composes`
 - Reimplementing CSS Modules compose resolution here

@@ -1,7 +1,7 @@
 export { FileScanCache } from './file-scan-cache.js'
 export { ensureUniqueAtomNames, syncScanAtomHashes } from './atoms.js'
 export { processCssModules } from './process.js'
-export { buildRegistryCss } from './registry.js'
+export { buildRegistryCss, sortAtomsForRegistry } from './registry.js'
 export {
   SKIP_REASON_LEGEND,
   formatAtomizationReport,
@@ -9,7 +9,10 @@ export {
 } from './report.js'
 export { rewriteFiles } from './rewrite.js'
 export { scanFiles } from './scan.js'
-export { findShorthandConflicts } from './shorthand-groups.js'
+export {
+  comparePropertyCascadeOrder,
+  findShorthandConflicts,
+} from './shorthand-groups.js'
 export {
   classifyEligibleGroup,
   classifySelector,

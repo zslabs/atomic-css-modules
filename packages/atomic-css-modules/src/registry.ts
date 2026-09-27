@@ -8,7 +8,26 @@
  */
 import type { Rule, StyleRule } from 'lightningcss'
 import { transform } from 'lightningcss'
+import { comparePropertyCascadeOrder } from './shorthand-groups.js'
 import type { Atom, AtomWrapper } from './types.js'
+
+/**
+ * Stable registry emission order: shorthands before their longhands, then
+ * property name, then atom key fingerprint. Equal-specificity atoms resolve
+ * by this stylesheet order when multiple classes land on one element.
+ */
+export function sortAtomsForRegistry(atoms: readonly Atom[]): Atom[] {
+  return [...atoms].sort((left, right) => {
+    const cascade = comparePropertyCascadeOrder(
+      left.key.property,
+      right.key.property
+    )
+    if (cascade !== 0) return cascade
+    const byProperty = left.key.property.localeCompare(right.key.property)
+    if (byProperty !== 0) return byProperty
+    return left.keyString.localeCompare(right.keyString)
+  })
+}
 
 function locationStub(): {
   source_index: number
@@ -111,7 +130,7 @@ function wrapInCondition(atom: Atom, styleRule: Rule): Rule {
 
 /** Builds the atomic registry CSS text for a set of collected atoms. Returns an empty string if there are none. */
 export function buildRegistryCss(atoms: Iterable<Atom>): string {
-  const atomList = [...atoms]
+  const atomList = sortAtomsForRegistry([...atoms])
   if (atomList.length === 0) return ''
 
   const result = transform({

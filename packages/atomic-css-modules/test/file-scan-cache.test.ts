@@ -56,4 +56,28 @@ describe('FileScanCache', () => {
     ).toBe(true)
     expect(cache.getScan('a.module.css')).toBe(before)
   })
+
+  it('emits identical registry CSS regardless of update order', () => {
+    const forward = new FileScanCache()
+    forward.update({
+      filePath: 'z.module.css',
+      code: '.z { margin-top: 4px; }\n',
+    })
+    forward.update({
+      filePath: 'a.module.css',
+      code: '.a { margin: 16px; }\n',
+    })
+
+    const reverse = new FileScanCache()
+    reverse.update({
+      filePath: 'a.module.css',
+      code: '.a { margin: 16px; }\n',
+    })
+    reverse.update({
+      filePath: 'z.module.css',
+      code: '.z { margin-top: 4px; }\n',
+    })
+
+    expect(forward.snapshot().registryCss).toBe(reverse.snapshot().registryCss)
+  })
 })
