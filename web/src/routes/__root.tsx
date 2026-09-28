@@ -11,11 +11,10 @@ export const Route = createRootRoute({
         name: 'viewport',
         content: 'width=device-width, initial-scale=1',
       },
-      { title: 'atomic-css-modules' },
+      { title: 'Atomic CSS Modules' },
       {
         name: 'description',
-        content:
-          'Write CSS Modules. Ship atomic utilities. LightningCSS extracts shared declarations at build time.',
+        content: 'Write CSS Modules. Ship atomic utilities.',
       },
     ],
     links: [
