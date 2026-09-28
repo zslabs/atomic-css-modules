@@ -251,7 +251,7 @@ export default defineConfig({
     magicMoveStepsPlugin(),
     codeSnippetsPlugin(),
     atomicCssModules({
-      include: ['src/styles/**/*.module.css'],
+      include: ['src/**/*.module.css'],
       debugNames: false,
       preprocess: (code, filePath) => applyTokenVisitor(tokens, code, filePath),
     }),
