@@ -1,0 +1,27 @@
+.introContent {
+  @token-text lg;
+
+  border-block-start: 1px solid token('color.slate.4');
+  border-inline: 1px solid token('color.slate.4');
+  border-start-end-radius: token('radius.xl');
+  border-start-start-radius: token('radius.xl');
+}
+
+.introTextPrimary {
+  padding: token('spacing.4');
+}
+
+.introTextSecondary {
+  padding: token('spacing.4');
+}
+
+.link {
+  text-decoration: underline dotted token('color.slate.11');
+  text-underline-offset: 0.25em;
+  font-weight: token('font.weight.semibold');
+  transition: text-decoration-color token('duration.100') token('ease.in');
+
+  &:hover {
+    text-decoration-color: token('color.slate.12');
+  }
+}

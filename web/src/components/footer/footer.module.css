@@ -1,0 +1,17 @@
+.footer {
+  display: flex;
+  justify-content: center;
+  gap: token('spacing.6');
+  padding-block: token('spacing.4');
+  border-block-start: 1px solid token('color.slate.4');
+}
+
+.footerLink {
+  font-size: token('text.xl');
+  color: token('color.slate.11');
+  transition: color token('duration.100') token('ease.in');
+
+  &:hover {
+    color: token('color.slate.12');
+  }
+}

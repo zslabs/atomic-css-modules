@@ -1,18 +1,21 @@
 .group {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   isolation: isolate;
-  border-block-end: 1px solid token('color.slate.3');
+  gap: token('spacing.1');
+  margin-block-start: token('spacing.2');
 }
 
 .button {
-  @token-text 'xl';
-
   position: relative;
   padding-block: token('spacing.1.5');
-  padding-inline: token('spacing.4');
+  padding-inline: token('spacing.3');
   text-transform: uppercase;
   transition: background-color token('duration.100') token('ease.in');
+  line-height: 1;
+  font-size: token('text.lg');
+  border-radius: token('radius.full');
 
   &:hover {
     background-color: token('color.slate.2');
@@ -31,11 +34,12 @@
   inset: 0;
   z-index: 0;
   background-color: token('color.slate.12');
+  border-radius: token('radius.full');
 }
 
 .codeWrapper {
   position: relative;
-  block-size: token('spacing.96');
+  block-size: 15lh;
   min-inline-size: 0;
   overflow: auto;
   mask-image: linear-gradient(

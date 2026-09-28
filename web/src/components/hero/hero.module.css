@@ -1,0 +1,49 @@
+.heroWrapper {
+  position: relative;
+  overflow: hidden;
+  margin-block: token('spacing.4');
+  border-radius: token('radius.xl');
+  background-color: token('color.slate.2');
+  padding: token('spacing.4');
+  border: 1px solid token('color.slate.4');
+  box-shadow: 0 0 0 2px token('color.slate.2');
+}
+
+.heroBg {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url('/media/ooorganize-bg.svg');
+  background-position: center;
+  background-size: 200px;
+  mask-image: linear-gradient(to right, transparent, black);
+}
+
+.heroBadge {
+  font-size: token('text.sm');
+  position: relative;
+  z-index: 1;
+  border-radius: token('radius.full');
+  background-color: token('color.slate.12');
+  color: token('color.slate.1');
+  inline-size: fit-content;
+  line-height: 1;
+  padding-inline: token('spacing.1');
+  padding-block: token('spacing.0.5');
+}
+
+.heroText {
+  @token-text '4xl';
+
+  position: relative;
+  z-index: 1;
+  margin-block-start: token('spacing.4');
+}
+
+.heroTextSecondary {
+  @token-text lg;
+
+  color: token('color.slate.11');
+  margin-block-start: token('spacing.2');
+}

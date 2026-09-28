@@ -1,0 +1,5 @@
+.container {
+  max-inline-size: token('container.5xl');
+  margin-inline: auto;
+  padding-inline: token('spacing.4');
+}

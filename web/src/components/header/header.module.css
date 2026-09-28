@@ -1,0 +1,51 @@
+.header {
+  border-inline: 1px solid token('color.slate.4');
+  border-block-end: 1px solid token('color.slate.4');
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: token('spacing.2');
+  border-end-end-radius: token('radius.xl');
+  border-end-start-radius: token('radius.xl');
+}
+
+.headerLogo {
+  border-inline-end: 1px solid token('color.slate.4');
+  padding: token('spacing.4');
+}
+
+.liquidMetalLogo {
+  inline-size: token('spacing.16');
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+
+.button {
+  align-self: center;
+  display: inline-flex;
+  gap: token('spacing.2');
+  align-items: center;
+  block-size: token('spacing.10');
+  padding-inline: token('spacing.4');
+  border-radius: token('radius.full');
+  background-color: token('color.slate.4');
+  color: token('color.slate.12');
+  font-weight: token('font.weight.semibold');
+}
+
+.headerLinkWrapper {
+  border-inline-start: 1px solid token('color.slate.4');
+}
+
+.headerLink {
+  display: flex;
+  block-size: 100%;
+  align-items: center;
+  padding-inline: token('spacing.6');
+  transition: background-color token('duration.100') token('ease.in');
+  font-size: token('text.3xl');
+
+  &:hover {
+    background-color: token('color.slate.2');
+  }
+}

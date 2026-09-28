@@ -1,13 +1,13 @@
 import CheckIcon from '@/assets/check.svg?react'
 import CopyIcon from '@/assets/copy.svg?react'
 import { useState } from 'react'
+import styles from './copy-button.module.css'
 
 type CopyButtonProps = {
   code: string
-  className?: string
 }
 
-export function CopyButton({ code, className }: CopyButtonProps) {
+export function CopyButton({ code }: CopyButtonProps) {
   const [copied, setCopied] = useState(false)
 
   async function onCopy() {
@@ -23,7 +23,7 @@ export function CopyButton({ code, className }: CopyButtonProps) {
   return (
     <button
       type="button"
-      className={className}
+      className={styles.button}
       aria-label={copied ? 'Copied' : 'Copy'}
       onClick={() => {
         void onCopy()

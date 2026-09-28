@@ -1,0 +1,22 @@
+.section {
+  border-inline: 1px solid token('color.slate.4');
+  border-block-start: 1px solid token('color.slate.4');
+  min-inline-size: 0;
+}
+
+.sectionTitle {
+  @token-text '3xl';
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: token('spacing.2');
+  padding: token('spacing.4');
+  border-block-end: 1px solid token('color.slate.4');
+}
+
+.sectionTitleIcon {
+  inline-size: token('spacing.6');
+  color: token('color.slate.5');
+  flex: 0;
+}

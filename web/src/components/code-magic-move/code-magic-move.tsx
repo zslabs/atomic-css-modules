@@ -1,11 +1,11 @@
 import FaceKissHeartEyes from '@/assets/face-kiss-heart-eyes.svg?react'
-import styles from '@/styles/code-magic-move.module.css'
 import { ShikiMagicMovePrecompiled } from '@shikijs/magic-move/react'
 import '@shikijs/magic-move/style.css'
 import type { KeyedTokensInfo } from '@shikijs/magic-move/types'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { COMPILED_STEPS, STEPS, type StepId } from 'virtual:magic-move-steps'
+import styles from './code-magic-move.module.css'
 
 const compiledSteps: KeyedTokensInfo[] = COMPILED_STEPS.slice()
 
