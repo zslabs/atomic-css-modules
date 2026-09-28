@@ -39,7 +39,7 @@
 
 .codeWrapper {
   position: relative;
-  block-size: 15lh;
+  block-size: 16lh;
   min-inline-size: 0;
   overflow: auto;
   mask-image: linear-gradient(
