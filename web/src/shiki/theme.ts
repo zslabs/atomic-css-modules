@@ -2,7 +2,7 @@ import type { ShikiTransformer } from 'shiki'
 
 export const SHIKI_THEME = 'aurora-x'
 
-export const SHIKI_LANGS = ['typescript', 'bash'] as const
+export const SHIKI_LANGS = ['typescript', 'bash', 'css'] as const
 
 /** Drop Shiki's theme background from `<pre>`; keep token colors. */
 export function transformerRemoveBackground(): ShikiTransformer {

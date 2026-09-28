@@ -1,5 +1,5 @@
 declare module 'virtual:code-snippets' {
-  export type CodeSnippetId = 'install' | 'viteConfig'
+  export type CodeSnippetId = 'install' | 'viteConfig' | 'stylelint'
 
   export interface CodeSnippet {
     id: CodeSnippetId

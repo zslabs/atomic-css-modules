@@ -19,6 +19,7 @@ import {
   tokenCustomAtRules,
 } from './src/css/token-visitor.ts'
 import { tokens } from './src/css/tokens.ts'
+import { transformerLintConflict } from './src/shiki/lint-conflict.ts'
 import {
   SHIKI_LANGS,
   SHIKI_THEME,
@@ -93,6 +94,15 @@ export default defineConfig({
     }),
   ],
 })
+`,
+  },
+  {
+    id: 'stylelint',
+    lang: 'css',
+    code: `.card {
+  margin: 0;
+  margin-left: 4px;
+}
 `,
   },
 ] as const
@@ -204,7 +214,12 @@ function codeSnippetsPlugin(): Plugin {
             const html = highlighter.codeToHtml(snippet.code, {
               lang: snippet.lang,
               theme: SHIKI_THEME,
-              transformers: [transformerRemoveBackground()],
+              transformers: [
+                transformerRemoveBackground(),
+                ...(snippet.id === 'stylelint'
+                  ? [transformerLintConflict()]
+                  : []),
+              ],
             })
             return [
               snippet.id,

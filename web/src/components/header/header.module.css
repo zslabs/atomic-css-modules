@@ -31,6 +31,7 @@
   background-color: token('color.slate.4');
   color: token('color.slate.12');
   font-weight: token('font.weight.semibold');
+  box-shadow: inset 0 1px 0 0 token('color.slate.7');
 }
 
 .headerLinkWrapper {

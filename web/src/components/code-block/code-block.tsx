@@ -8,7 +8,7 @@ type CodeBlockProps = {
   filename?: string
 }
 
-export function CodeBlock({ snippet, copy = true, filename }: CodeBlockProps) {
+export function CodeBlock({ snippet, copy, filename }: CodeBlockProps) {
   return (
     <div className={styles.codeWrapper}>
       <div className={styles.codeScroll}>
