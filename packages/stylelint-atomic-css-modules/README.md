@@ -65,17 +65,6 @@ Both checks default to on. Disable either independently:
 }
 ```
 
-## Publish (from this monorepo)
-
-Build and publish the workspace package (after bumping `version` and updating `CHANGELOG.md`):
-
-```bash
-npm run build -w @zslabs/stylelint-atomic-css-modules
-npm publish -w @zslabs/stylelint-atomic-css-modules --access public
-```
-
-The root `npm run release` script currently publishes only `@zslabs/atomic-css-modules`; extend it when you want a single release path for both packages.
-
 ## License
 
 MIT
