@@ -1,7 +1,13 @@
+import designTokenPlugin from './web/stylelint/index.ts'
+
 /** @type {import('stylelint').Config} */
 export default {
   extends: ['stylelint-config-standard'],
-  plugins: ['stylelint-use-logical', '@zslabs/stylelint-atomic-css-modules'],
+  plugins: [
+    'stylelint-use-logical',
+    '@zslabs/stylelint-atomic-css-modules',
+    designTokenPlugin,
+  ],
   languageOptions: {
     syntax: {
       atRules: {
@@ -24,6 +30,7 @@ export default {
       },
     ],
     'csstools/use-logical': 'always',
+    'design-token/no-unknown': true,
   },
   overrides: [
     {
