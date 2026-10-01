@@ -1,6 +1,7 @@
 import resetCss from '@/styles/reset.css?url'
 import shellCss from '@/styles/shell.css?url'
 import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
+import { Analytics } from '@vercel/analytics/react'
 import type { ReactNode } from 'react'
 
 export const Route = createRootRoute({
@@ -35,6 +36,7 @@ function RootDocument({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <Analytics />
         <Scripts />
       </body>
     </html>
