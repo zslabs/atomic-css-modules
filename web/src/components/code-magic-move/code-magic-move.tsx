@@ -3,7 +3,7 @@ import { ShikiMagicMovePrecompiled } from '@shikijs/magic-move/react'
 import '@shikijs/magic-move/style.css'
 import type { KeyedTokensInfo } from '@shikijs/magic-move/types'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { COMPILED_STEPS, STEPS, type StepId } from 'virtual:magic-move-steps'
 import styles from './code-magic-move.module.css'
 
@@ -16,6 +16,17 @@ export function CodeMagicMove() {
     0,
     STEPS.findIndex((entry) => entry.id === stepId)
   )
+  // Magic Move resolves the previous animation as soon as the next one
+  // starts, and then calls that animation's onEnd. Keep the icon tied to the
+  // transition that is still current, so a late callback cannot show it on
+  // another step.
+  const latestTransitionRef = useRef(0)
+  const transitionStepRef = useRef(stepId)
+  let transitionId = latestTransitionRef.current
+  if (transitionStepRef.current !== stepId) {
+    transitionStepRef.current = stepId
+    transitionId = ++latestTransitionRef.current
+  }
 
   return (
     <div>
@@ -56,24 +67,27 @@ export function CodeMagicMove() {
             }}
             onStart={() => setShowDecoration(false)}
             onEnd={() => {
+              if (latestTransitionRef.current !== transitionId) return
               if (stepId === 'output') setShowDecoration(true)
             }}
           />
         </div>
-        <AnimatePresence>
-          {showDecoration ? (
-            <motion.div
-              className={styles.outputDecoration}
-              aria-hidden="true"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <FaceKissHeartEyes />
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        {stepId === 'output' ? (
+          <AnimatePresence>
+            {showDecoration ? (
+              <motion.div
+                className={styles.outputDecoration}
+                aria-hidden="true"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <FaceKissHeartEyes />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        ) : null}
       </div>
     </div>
   )
