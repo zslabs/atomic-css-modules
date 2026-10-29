@@ -6,6 +6,7 @@
     "node_modules",
     "packages/*/dist",
     "web/dist",
+    "examples/*/dist",
     "web/.nitro",
     "web/.output",
     "web/.tanstack",
@@ -19,7 +20,7 @@
   },
   "overrides": [
     {
-      "files": ["web/**"],
+      "files": ["web/**", "examples/**"],
       "env": {
         "browser": true,
         "node": true,
