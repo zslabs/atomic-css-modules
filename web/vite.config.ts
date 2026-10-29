@@ -97,6 +97,31 @@ export default defineConfig({
 `,
   },
   {
+    id: 'webpackConfig',
+    lang: 'javascript',
+    code: `import MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import { AtomicCssModulesWebpackPlugin } from
+  '@zslabs/atomic-css-modules/webpack'
+
+export default {
+  module: {
+    rules: [
+      {
+        test: /\\.css$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      },
+    ],
+  },
+  plugins: [
+    new MiniCssExtractPlugin(),
+    new AtomicCssModulesWebpackPlugin({
+      include: ['src/**/*.module.css'],
+    }),
+  ],
+}
+`,
+  },
+  {
     id: 'stylelint',
     lang: 'css',
     code: `.card {
