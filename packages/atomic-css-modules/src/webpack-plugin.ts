@@ -2,7 +2,7 @@
  * webpack 5 / Rspack plugin wrapper around the core atomic CSS Modules
  * pipeline, for setups that process CSS with css-loader.
  *
- * The registry is an empty CSS file shipped with the package. A loader fills
+ * The registry is a stub CSS file shipped with the package. A loader fills
  * it from the shared scan cache on every compilation, and a JS loader imports
  * it from any module that loads a CSS module. Because its name is not
  * `*.module.css`, css-loader treats it as global CSS, so atom class names
@@ -84,11 +84,12 @@ export class AtomicCssModulesWebpackPlugin {
             compiler.watchMode === true),
       })
       const report = await state.syncFromDisk()
-      if (reported) return
-      reported = true
-      compiler
-        .getInfrastructureLogger(PLUGIN_NAME)
-        .info(state.formatReport(report))
+      if (!reported) {
+        reported = true
+        compiler
+          .getInfrastructureLogger(PLUGIN_NAME)
+          .info(state.formatReport(report))
+      }
     }
 
     compiler.hooks.beforeRun.tapPromise(PLUGIN_NAME, sync)

@@ -98,7 +98,7 @@ export default defineConfig({
   },
   {
     id: 'webpackConfig',
-    lang: 'javascript',
+    lang: 'typescript',
     code: `import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import { AtomicCssModulesWebpackPlugin } from
   '@zslabs/atomic-css-modules/webpack'

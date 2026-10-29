@@ -1,4 +1,3 @@
-/** Rewrites a matching CSS module to `composes` atoms from the global registry. */
 import type { LoaderContext } from './loader-context.js'
 import { resolveState } from './state-registry.js'
 
