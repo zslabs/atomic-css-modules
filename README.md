@@ -25,13 +25,15 @@ export default defineConfig({
 })
 ```
 
-| Option       | Default                           | Notes                                               |
-| ------------ | --------------------------------- | --------------------------------------------------- |
-| `include`    | `**/*.module.css`                 | Globs relative to the Vite root                     |
-| `exclude`    | `**/node_modules/**`              |                                                     |
-| `debugNames` | `true` in serve, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes |
-| `report`     | `"summary"`                       | `"verbose"` lists each skipped selector             |
-| `preprocess` | —                                 | `(code, filePath) => code` before scan/atomize      |
+webpack 5 and Rspack are supported through `AtomicCssModulesWebpackPlugin` from `@zslabs/atomic-css-modules/webpack`. See the [package README](./packages/atomic-css-modules/README.md#webpack--rspack) for setup.
+
+| Option       | Default                         | Notes                                               |
+| ------------ | ------------------------------- | --------------------------------------------------- |
+| `include`    | `**/*.module.css`               | Globs relative to the Vite root or webpack context  |
+| `exclude`    | `**/node_modules/**`            |                                                     |
+| `debugNames` | `true` in dev, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes |
+| `report`     | `"summary"`                     | `"verbose"` lists each skipped selector             |
+| `preprocess` | —                               | `(code, filePath) => code` before scan/atomize      |
 
 ## How it works
 
@@ -88,7 +90,7 @@ import { processCssModules } from '@zslabs/atomic-css-modules'
 
 const result = processCssModules([{ filePath: 'button.module.css', code }], {
   registryImportPath: './atomic-registry.css',
-  composeFrom: 'file', // Vite plugin uses 'global'
+  composeFrom: 'file', // the bundler plugins use 'global'
   sourceMap: true,
 })
 ```

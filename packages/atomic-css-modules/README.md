@@ -7,14 +7,17 @@ Extracts repeated CSS Modules declarations into shared atomic classes via `compo
 - **Node.js** `>=20.17` or `>=22.5` (uses `path.matchesGlob`)
 - **CSS Modules** source (`.module.css`)
 - **Vite** `^8` when using the Vite plugin (`vite` is an optional peer)
+- **webpack** `^5` with `css-loader` `^7`, or **Rspack** `^2` with `css-loader` or native CSS, when using the webpack plugin (all optional peers)
 
-The core `processCssModules` API has no Vite dependency.
+The core `processCssModules` API has no bundler dependency.
 
 ## Install
 
 ```sh
 npm install @zslabs/atomic-css-modules
 ```
+
+### Vite
 
 ```ts
 import { defineConfig } from 'vite'
@@ -29,13 +32,49 @@ export default defineConfig({
 })
 ```
 
-| Option       | Default                           | Notes                                               |
-| ------------ | --------------------------------- | --------------------------------------------------- |
-| `include`    | `**/*.module.css`                 | Globs relative to the Vite root                     |
-| `exclude`    | `**/node_modules/**`              |                                                     |
-| `debugNames` | `true` in serve, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes |
-| `report`     | `"summary"`                       | `"verbose"` lists each skipped selector             |
-| `preprocess` | —                                 | `(code, filePath) => code` before scan/atomize      |
+### webpack / Rspack
+
+Add the plugin alongside your existing CSS setup. It injects its own loaders ahead of `css-loader`, so no extra rules are needed.
+
+```js
+import MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import { AtomicCssModulesWebpackPlugin } from '@zslabs/atomic-css-modules/webpack'
+
+export default {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      },
+    ],
+  },
+  plugins: [
+    new MiniCssExtractPlugin(),
+    new AtomicCssModulesWebpackPlugin({
+      include: ['src/**/*.module.css'],
+    }),
+  ],
+}
+```
+
+On Rspack, use `rspack.CssExtractRspackPlugin` with the same rule, or native CSS with the standard `{ test: /\.css$/, type: 'css/auto' }` rule and `experiments.css: true`.
+
+Keep `css-loader`'s default `modules.auto` (or any setting that only scopes `*.module.css`). The shared registry is a plain `.css` file shipped with the package and must stay global.
+
+Next.js is not supported: it owns its `css-loader` configuration, and Turbopack does not run webpack plugins.
+
+### Options
+
+| Option       | Default                         | Notes                                               |
+| ------------ | ------------------------------- | --------------------------------------------------- |
+| `include`    | `**/*.module.css`               | Globs relative to the Vite root or webpack context  |
+| `exclude`    | `**/node_modules/**`            |                                                     |
+| `debugNames` | `true` in dev, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes |
+| `report`     | `"summary"`                     | `"verbose"` lists each skipped selector             |
+| `preprocess` | —                               | `(code, filePath) => code` before scan/atomize      |
+
+"Dev" means `vite serve`, or webpack/Rspack in `development` mode or watch mode.
 
 ## How it works
 
@@ -85,7 +124,7 @@ Selector eligibility, shorthand/longhand rules, and non-goals: [GUIDE.md](./GUID
 
 Add `/* atomic: skip */` before a selector, or as the first comment in a rule block, to leave that rule alone. Use it when a declaration would atomize but sharing it would break cascade or you need the styles to stay on the local class.
 
-`buildStart` logs atom count, skip reasons, and source vs registry bytes.
+The first build logs atom count, skip reasons, and source vs registry bytes.
 
 ## Caveats
 
@@ -100,6 +139,7 @@ Add `/* atomic: skip */` before a selector, or as the first comment in a rule bl
 **Supported**
 
 - `@zslabs/atomic-css-modules/vite` — `atomicCssModules`, plugin option types, registry virtual module ids
+- `@zslabs/atomic-css-modules/webpack` — `AtomicCssModulesWebpackPlugin`, plugin option types, `REGISTRY_STUB_PATH`
 - `@zslabs/atomic-css-modules` — `processCssModules`, `ProcessOptions` / `ProcessResult` and related result types, `SKIP_REASONS` / report helpers used with the pipeline
 
 **Internal** (exported for advanced use and tests; may change without a major bump)
@@ -111,7 +151,7 @@ import { processCssModules } from '@zslabs/atomic-css-modules'
 
 const result = processCssModules([{ filePath: 'button.module.css', code }], {
   registryImportPath: './atomic-registry.css',
-  composeFrom: 'file', // Vite plugin uses 'global'
+  composeFrom: 'file', // the bundler plugins use 'global'
   sourceMap: true,
 })
 ```

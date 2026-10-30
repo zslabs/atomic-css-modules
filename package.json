@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "web"
+    "web",
+    "examples/*"
   ],
   "type": "module",
   "scripts": {
@@ -22,6 +23,7 @@
     "web": "npm run dev -w web",
     "web:build": "npm run build -w web",
     "web:start": "npm run start -w web",
+    "example:webpack": "npm run dev -w example-webpack",
     "tokens:snippets": "npm run tokens:snippets -w web",
     "tokens:hover:install": "node ./extensions/design-token-hover/install.mjs"
   },

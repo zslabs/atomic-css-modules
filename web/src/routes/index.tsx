@@ -29,6 +29,13 @@ function HomePage() {
         <Section id="install" title="Install" icon={<Terminal />}>
           <CodeBlock copy snippet={SNIPPETS.install} />
           <CodeBlock snippet={SNIPPETS.viteConfig} filename="vite.config.ts" />
+          <CodeBlock
+            snippet={SNIPPETS.webpackConfig}
+            filename="webpack.config.js"
+          />
+          <p className={styles.installNote}>
+            Rspack uses the same plugin, with css-loader or its native CSS.
+          </p>
         </Section>
         <Section id="stylelint" title="Stylelint" icon={<BroomSparkle />}>
           <div className={styles.lintContainer}>

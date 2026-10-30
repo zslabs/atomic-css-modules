@@ -1,0 +1,9 @@
+.badge {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #1a1a1a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}

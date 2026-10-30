@@ -1,0 +1,39 @@
+.card {
+  display: grid;
+  gap: 16px;
+  max-inline-size: 640px;
+  margin-inline: auto;
+  margin-block: 48px;
+  padding: 24px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background-color: #fff;
+  color: #1a1a1a;
+  font-family: system-ui, sans-serif;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.body {
+  margin: 0;
+  color: #555;
+  line-height: 1.5;
+}
+
+.list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.value {
+  margin-inline-start: 0;
+  margin-block-end: 8px;
+  color: #555;
+}
