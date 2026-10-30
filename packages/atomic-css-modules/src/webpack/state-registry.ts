@@ -15,6 +15,8 @@ function states(): Map<string, AtomicPluginState> {
 
 export interface LoaderOptions {
   stateId: string
+  /** False on Rspack, which does not expose the extracted CSS for patching. */
+  cacheRegistry?: boolean
 }
 
 export function registerState(state: AtomicPluginState): LoaderOptions {

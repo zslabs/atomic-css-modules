@@ -1,11 +1,20 @@
 /**
- * Replaces the empty registry stub with the current registry CSS. Not
- * cacheable: its output depends on every CSS module, not just the stub.
+ * Fills the registry stub from the shared scan cache. On webpack the result
+ * is cached against the CSS module files. Rspack does not expose the
+ * extracted CSS, so that loader runs on every compilation and the watch
+ * scan has to pick up new imports before it does.
  */
 import type { LoaderContext } from './loader-context.js'
 import { resolveState } from './state-registry.js'
 
 export default function registryLoader(this: LoaderContext): void {
-  this.cacheable(false)
-  this.callback(null, resolveState(this.getOptions()).registryCss)
+  const options = this.getOptions()
+  const state = resolveState(options)
+  const cacheRegistry = options.cacheRegistry !== false
+  this.cacheable(cacheRegistry)
+  if (cacheRegistry) {
+    for (const filePath of state.cssModulePaths()) this.addDependency(filePath)
+  }
+  state.noteEmittedRegistryHash(state.registryHash)
+  this.callback(null, state.registryCss)
 }

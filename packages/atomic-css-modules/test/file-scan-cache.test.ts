@@ -46,6 +46,19 @@ describe('FileScanCache', () => {
     expect(snap.registryCss).not.toMatch(/font-size:\s*20px/)
   })
 
+  it('lists files whose composed class names changed after the first snapshot', () => {
+    const cache = new FileScanCache()
+    cache.update({ filePath: 'a.module.css', code: '.a { color: red; }\n' })
+    cache.update({ filePath: 'b.module.css', code: '.b { color: blue; }\n' })
+    expect(cache.snapshot().remappedFiles).toEqual([])
+
+    cache.update({ filePath: 'a.module.css', code: '.a { color: green; }\n' })
+    expect(cache.snapshot().remappedFiles).toEqual(['a.module.css'])
+
+    cache.update({ filePath: 'c.module.css', code: '.c { padding: 1px; }\n' })
+    expect(cache.snapshot().remappedFiles).toEqual([])
+  })
+
   it('keeps an unchanged file scan when a sibling is updated', () => {
     const cache = new FileScanCache()
     cache.update({ filePath: 'a.module.css', code: '.a { color: red; }\n' })

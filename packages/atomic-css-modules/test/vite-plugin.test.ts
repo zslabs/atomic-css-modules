@@ -64,7 +64,13 @@ async function loadRegistry(
 
 function emptyGraph() {
   return {
-    environment: { moduleGraph: { getModuleById: () => undefined } },
+    environment: {
+      moduleGraph: {
+        getModuleById: () => undefined,
+        getModulesByFile: () => undefined,
+        invalidateModule: () => {},
+      },
+    },
     server: {
       moduleGraph: {
         getModuleById: () => undefined,
@@ -144,6 +150,33 @@ describe('vite plugin virtual registry', () => {
     }
     expect(result.code).toMatch(/composes:\s*[a-z][a-z0-9]+ from global;/)
     expect(result.code).not.toContain('atomic-registry.css')
+    expect(result.map).toBeFalsy()
+  })
+
+  it('emits a source map when css.devSourcemap is enabled', () => {
+    const plugin = atomicCssModules({ include: ['**/*.module.css'] })
+    const configResolved = plugin.configResolved
+    if (typeof configResolved !== 'function') {
+      throw new Error('expected configResolved function')
+    }
+    configResolved({
+      root: '/app',
+      command: 'serve',
+      css: { devSourcemap: true },
+    })
+
+    const transform = plugin.transform
+    if (typeof transform !== 'function') {
+      throw new Error('expected transform function')
+    }
+    const result = transform.call(
+      {},
+      '.button { color: red; }\n',
+      '/app/button.module.css'
+    )
+    if (!result || typeof result === 'string') {
+      throw new Error('expected transform result')
+    }
     expect(result.map).toBeTruthy()
   })
 

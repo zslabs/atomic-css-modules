@@ -47,10 +47,20 @@ function slug(value: string): string {
   return slugged || 'x'
 }
 
+/**
+ * Debug names print each declaration through lightningcss. Files are scanned
+ * alone, so the same declaration would otherwise be printed once per file.
+ */
+const printedDeclarations = new Map<string, string>()
+
 function printedDeclaration(
   declaration: Declaration,
-  important: boolean
+  important: boolean,
+  fingerprint: string
 ): string {
+  const cacheKey = `${important ? '1' : '0'}:${fingerprint}`
+  const cached = printedDeclarations.get(cacheKey)
+  if (cached !== undefined) return cached
   const result = transform({
     filename: 'atom.css',
     code: Buffer.from('._{}'),
@@ -74,7 +84,9 @@ function printedDeclaration(
   })
   const css = Buffer.from(result.code).toString('utf8')
   const match = /\{([^}]+)\}/.exec(css)
-  return (match?.[1] ?? '').replace(/!important/g, '').trim()
+  const printed = (match?.[1] ?? '').replace(/!important/g, '').trim()
+  printedDeclarations.set(cacheKey, printed)
+  return printed
 }
 
 function debugAtomClassName(key: AtomKey, declaration: Declaration): string {
@@ -83,7 +95,9 @@ function debugAtomClassName(key: AtomKey, declaration: Declaration): string {
     prefixes.push(wrapper.kind === 'media' ? 'md' : wrapper.kind)
   }
   if (key.pseudo && 'kind' in key.pseudo) prefixes.push(key.pseudo.kind)
-  const body = slug(printedDeclaration(declaration, key.important))
+  const body = slug(
+    printedDeclaration(declaration, key.important, key.valueFingerprint)
+  )
   if (key.important) prefixes.push('i')
   const name = [...prefixes, body].join('-')
   const base = /^[a-z]/i.test(name) ? name : `a-${name}`
