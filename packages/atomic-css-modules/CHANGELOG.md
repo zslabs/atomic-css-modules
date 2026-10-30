@@ -2,6 +2,10 @@
 
 All notable changes to `@zslabs/atomic-css-modules` are documented here.
 
+## 0.4.0
+
+- Add `atomicCssModulesPostcss` for Next.js on Turbopack and webpack, replacing `@atomic-css-modules` in global CSS with the shared registry (#5)
+
 ## 0.3.0
 
 - Add `AtomicCssModulesWebpackPlugin` for webpack 5 and Rspack, covering css-loader and Rspack native CSS (#3)
