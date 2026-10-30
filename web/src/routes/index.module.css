@@ -4,12 +4,6 @@
   padding-inline: token('spacing.4');
 }
 
-.installNote {
-  padding: token('spacing.4');
-  padding-block-start: 0;
-  color: token('color.slate.11');
-}
-
 .lintContainer {
   padding: token('spacing.4');
 

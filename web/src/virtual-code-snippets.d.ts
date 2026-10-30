@@ -2,7 +2,9 @@ declare module 'virtual:code-snippets' {
   export type CodeSnippetId =
     | 'install'
     | 'viteConfig'
-    | 'webpackConfig'
+    | 'rspackConfig'
+    | 'postcssConfig'
+    | 'postcssGlobals'
     | 'stylelint'
 
   export interface CodeSnippet {

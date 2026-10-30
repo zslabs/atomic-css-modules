@@ -8,6 +8,7 @@ Extracts repeated CSS Modules declarations into shared atomic classes via `compo
 - **CSS Modules** source (`.module.css`)
 - **Vite** `^8` when using the Vite plugin (`vite` is an optional peer)
 - **webpack** `^5` with `css-loader` `^7`, or **Rspack** `^2` with `css-loader` or native CSS, when using the webpack plugin (all optional peers)
+- **PostCSS** `^8` when using the PostCSS plugin (optional peer). This is the Next.js integration, for Turbopack and for `next dev --webpack`
 
 The core `processCssModules` API has no bundler dependency.
 
@@ -62,19 +63,44 @@ On Rspack, use `rspack.CssExtractRspackPlugin` with the same rule, or native CSS
 
 Keep `css-loader`'s default `modules.auto` (or any setting that only scopes `*.module.css`). The shared registry is a plain `.css` file shipped with the package and must stay global.
 
-Next.js is not supported: it owns its `css-loader` configuration, and Turbopack does not run webpack plugins.
+### Next.js
+
+Turbopack does not run webpack plugins, and it will not run a loader that rewrites stylesheets. Next.js does run `postcss.config.js` before Lightning CSS scopes `.module.css`, on Turbopack and on webpack. The PostCSS plugin is the integration.
+
+```js
+// postcss.config.js
+import { atomicCssModulesPostcss } from '@zslabs/atomic-css-modules/postcss'
+
+export default {
+  plugins: [atomicCssModulesPostcss()],
+}
+```
+
+Next.js loads `postcss.config.js` in Node. It bundles `postcss.config.mjs`, and that bundle cannot load the native `lightningcss` addon this plugin uses, so the config file has to be `postcss.config.js` and Node has to treat it as ESM (`"type": "module"`, or an app that already is). A CommonJS config that only names the package does not load it.
+
+Put `@atomic-css-modules;` in the global CSS imported by the root layout. The plugin replaces that at-rule with the shared atom rules. App Router only allows global CSS from that layout, so the registry is not injected into components.
+
+```css
+@atomic-css-modules;
+
+body {
+  margin: 0;
+}
+```
+
+`next dev` uses readable atom names. `next build` uses short hashes. Globs are relative to the directory where the PostCSS config is loaded (`root` overrides that).
 
 ### Options
 
-| Option       | Default                         | Notes                                               |
-| ------------ | ------------------------------- | --------------------------------------------------- |
-| `include`    | `**/*.module.css`               | Globs relative to the Vite root or webpack context  |
-| `exclude`    | `**/node_modules/**`            |                                                     |
-| `debugNames` | `true` in dev, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes |
-| `report`     | `"summary"`                     | `"verbose"` lists each skipped selector             |
-| `preprocess` | —                               | `(code, filePath) => code` before scan/atomize      |
+| Option       | Default                         | Notes                                                            |
+| ------------ | ------------------------------- | ---------------------------------------------------------------- |
+| `include`    | `**/*.module.css`               | Globs relative to the Vite root, webpack context, or PostCSS cwd |
+| `exclude`    | `**/node_modules/**`            |                                                                  |
+| `debugNames` | `true` in dev, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes              |
+| `report`     | `"summary"`                     | `"verbose"` lists each skipped selector                          |
+| `preprocess` | —                               | `(code, filePath) => code` before scan/atomize                   |
 
-"Dev" means `vite serve`, or webpack/Rspack in `development` mode. Production watch keeps the short hashes.
+"Dev" means `vite serve`, webpack/Rspack in `development` mode, or `next dev`. Production watch keeps the short hashes.
 
 ## How it works
 
@@ -139,6 +165,7 @@ The first build logs atom count, skip reasons, and source vs registry bytes.
 **Supported**
 
 - `@zslabs/atomic-css-modules/vite` — `atomicCssModules`, plugin option types, registry virtual module ids
+- `@zslabs/atomic-css-modules/postcss` — `atomicCssModulesPostcss`, plugin option types
 - `@zslabs/atomic-css-modules/webpack` — `AtomicCssModulesWebpackPlugin`, plugin option types, `REGISTRY_STUB_PATH`
 - `@zslabs/atomic-css-modules` — `processCssModules`, `ProcessOptions` / `ProcessResult` and related result types, `SKIP_REASONS` / report helpers used with the pipeline
 
