@@ -52,12 +52,20 @@ export class FileScanCache {
   private debugNames = false
   /** Last rematerialized global atom map (class names globally unique). */
   private mergedAtoms = new Map<string, Atom>()
+  /** False until the first snapshot, so that pass does not mark every file remapped. */
+  private snapshotted = false
+  /** Composed class names from the previous snapshot, keyed by file. */
+  private previousHashes = new Map<string, string>()
 
-  setDebugNames(debugNames: boolean): void {
-    if (this.debugNames === debugNames) return
+  /** True when the cache was cleared because the naming mode changed. */
+  setDebugNames(debugNames: boolean): boolean {
+    if (this.debugNames === debugNames) return false
     this.debugNames = debugNames
     this.entries.clear()
     this.mergedAtoms = new Map()
+    this.snapshotted = false
+    this.previousHashes = new Map()
+    return true
   }
 
   /** True when the file was scanned. False when the cached scan was reused. */
@@ -78,6 +86,14 @@ export class FileScanCache {
       skips: scanned.skips,
     })
     return true
+  }
+
+  has(filePath: string): boolean {
+    return this.entries.has(filePath)
+  }
+
+  filePaths(): string[] {
+    return [...this.entries.keys()]
   }
 
   remove(filePath: string): void {
@@ -104,6 +120,9 @@ export class FileScanCache {
     files: SourceFile[]
     scan: ScanResult
     registryCss: string
+    registryHash: string
+    /** Files whose composed class names changed since the previous snapshot. */
+    remappedFiles: string[]
     report: AtomizationReport
   } {
     const files: SourceFile[] = []
@@ -143,13 +162,37 @@ export class FileScanCache {
     }
     this.mergedAtoms = atoms
 
+    const remappedFiles: string[] = []
+    if (this.snapshotted) {
+      for (const scanFile of scanFilesResult) {
+        const previous = this.previousHashes.get(scanFile.filePath)
+        if (previous === undefined) continue
+        if (previous !== joinedHashes(scanFile)) {
+          remappedFiles.push(scanFile.filePath)
+        }
+      }
+    }
+    this.snapshotted = true
+    this.previousHashes = new Map(
+      scanFilesResult.map((scanFile) => [
+        scanFile.filePath,
+        joinedHashes(scanFile),
+      ])
+    )
+
     const scan: ScanResult = { atoms, files: scanFilesResult, skips }
     const registryCss = buildRegistryCss(atoms.values())
     return {
       files,
       scan,
       registryCss,
+      registryHash: contentHash(registryCss),
+      remappedFiles,
       report: summarizeAtomization(files, scan, registryCss),
     }
   }
+}
+
+function joinedHashes(scan: ScanFileResult): string {
+  return scan.rules.flatMap((rule) => rule.atomHashes).join('\n')
 }

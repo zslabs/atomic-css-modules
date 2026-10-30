@@ -31,16 +31,27 @@ interface BuildSettings {
   dir: string
   mode: Mode
   plugin: AtomicCssModulesPluginOptions
+  devtool?: false | 'source-map'
+}
+
+interface StatsModule {
+  name?: string
+  identifier?: string
+  cached?: boolean
+  built?: boolean
 }
 
 interface Watcher {
-  nextBuild(): Promise<void>
+  nextBuild(): Promise<StatsLike>
   close(): Promise<void>
 }
 
 interface StatsLike {
   hasErrors(): boolean
   toString(options: 'errors-only'): string
+  toJson?(options: { modules: true; cached: true }): {
+    modules?: StatsModule[]
+  }
 }
 
 interface CompilerLike {
@@ -60,7 +71,7 @@ interface BaseConfig {
   mode: Mode
   context: string
   entry: string
-  devtool: false
+  devtool: false | 'source-map'
   output: { path: string; library: { type: 'commonjs2' } }
   optimization: { minimize: false }
   infrastructureLogging: { level: 'none' }
@@ -71,7 +82,7 @@ function baseConfig(settings: BuildSettings): BaseConfig {
     mode: settings.mode,
     context: settings.dir,
     entry: './src/index.js',
-    devtool: false,
+    devtool: settings.devtool ?? false,
     output: {
       path: path.join(settings.dir, 'dist'),
       library: { type: 'commonjs2' },
@@ -163,9 +174,9 @@ function runOnce(compiler: CompilerLike): Promise<void> {
 }
 
 function startWatching(compiler: CompilerLike): Watcher {
-  const results: Array<Promise<void>> = []
+  const results: Array<Promise<StatsLike>> = []
   const waiters: Array<{
-    resolve: () => void
+    resolve: (stats: StatsLike) => void
     reject: (error: unknown) => void
   }> = []
   const watchOptions = {
@@ -174,10 +185,14 @@ function startWatching(compiler: CompilerLike): Watcher {
     ignored: /node_modules/,
   }
   const watching = compiler.watch(watchOptions, (error, stats) => {
-    const settle = (resolve: () => void, reject: (e: unknown) => void) => {
+    const settle = (
+      resolve: (built: StatsLike) => void,
+      reject: (error: unknown) => void
+    ) => {
       try {
         assertStats(error, stats)
-        resolve()
+        if (!stats) throw new Error('missing stats')
+        resolve(stats)
       } catch (failure) {
         reject(failure)
       }
@@ -259,6 +274,56 @@ describe.each(bundlers)('$name plugin', (bundler) => {
     expect(shared).toHaveLength(1)
     const [atom] = shared
     expect(css).toMatch(new RegExp(`^\\.${atom}\\s*\\{\\s*color:\\s*red`))
+  })
+
+  it('keeps hashed names in a production watch', async () => {
+    const dir = await setupProject(SHARED_FIXTURE)
+    const watcher = startWatching(
+      bundler.createCompiler({ dir, mode: 'production', plugin: {} })
+    )
+    try {
+      await watcher.nextBuild()
+      expect(await readOutput(dir, 'main.css')).not.toMatch(/color-red-/)
+    } finally {
+      await watcher.close()
+    }
+  }, 20_000)
+
+  it('keeps the built CSS when only JS changes', async () => {
+    const dir = await setupProject(SHARED_FIXTURE)
+    const watcher = startWatching(
+      bundler.createCompiler({ dir, mode: 'development', plugin: {} })
+    )
+    try {
+      await watcher.nextBuild()
+      await writeFile(
+        path.join(dir, 'src', 'index.js'),
+        `${SHARED_FIXTURE['index.js']}export const marker = 1\n`
+      )
+      const stats = await watcher.nextBuild()
+      const modules =
+        stats.toJson?.({ modules: true, cached: true }).modules ?? []
+      const registry = modules.filter((mod) =>
+        `${mod.name ?? ''} ${mod.identifier ?? ''}`.includes('registry.css')
+      )
+      expect(registry.length).toBeGreaterThan(0)
+      expect(await readOutput(dir, 'main.css')).toMatch(/color:\s*red/)
+    } finally {
+      await watcher.close()
+    }
+  }, 20_000)
+
+  it('emits a CSS source map when devtool asks for one', async () => {
+    const dir = await setupProject(SHARED_FIXTURE)
+    await runOnce(
+      bundler.createCompiler({
+        dir,
+        mode: 'development',
+        plugin: {},
+        devtool: 'source-map',
+      })
+    )
+    expect(await readOutput(dir, 'main.css')).toMatch(/sourceMappingURL/)
   })
 
   it('uses readable atom names in development', async () => {

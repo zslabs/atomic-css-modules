@@ -74,7 +74,7 @@ Next.js is not supported: it owns its `css-loader` configuration, and Turbopack 
 | `report`     | `"summary"`                     | `"verbose"` lists each skipped selector             |
 | `preprocess` | —                               | `(code, filePath) => code` before scan/atomize      |
 
-"Dev" means `vite serve`, or webpack/Rspack in `development` mode or watch mode.
+"Dev" means `vite serve`, or webpack/Rspack in `development` mode. Production watch keeps the short hashes.
 
 ## How it works
 

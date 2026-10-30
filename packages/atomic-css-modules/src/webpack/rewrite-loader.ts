@@ -6,6 +6,7 @@ export default function rewriteLoader(
   source: string
 ): void {
   const state = resolveState(this.getOptions())
+  if (this._module) state.rememberBuiltModule(this.resourcePath, this._module)
   const rewritten = state.rewriteCssModule(this.resourcePath, source)
   if (!rewritten) {
     this.callback(null, source)

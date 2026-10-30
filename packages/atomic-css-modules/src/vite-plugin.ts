@@ -72,6 +72,21 @@ function interpolateScopedName(
   })
 }
 
+function viteWantsSourceMap(config: {
+  command: 'build' | 'serve'
+  css?: { devSourcemap?: boolean }
+  build?: { sourcemap?: boolean | 'inline' | 'hidden' | 'nosources' }
+}): boolean {
+  if (config.command === 'serve') return config.css?.devSourcemap === true
+  const sourcemap = config.build?.sourcemap
+  return (
+    sourcemap === true ||
+    sourcemap === 'inline' ||
+    sourcemap === 'hidden' ||
+    sourcemap === 'nosources'
+  )
+}
+
 const VIRTUAL_REGISTRY_IDS = [
   RESOLVED_ATOMIC_REGISTRY_ID,
   `${RESOLVED_ATOMIC_REGISTRY_ID}?raw`,
@@ -126,6 +141,7 @@ export function atomicCssModules(
       state.configure({
         root: config.root,
         debugNames: options.debugNames ?? config.command === 'serve',
+        sourceMap: viteWantsSourceMap(config),
       })
     },
     resolveId(id) {
@@ -150,12 +166,22 @@ export function atomicCssModules(
     async hotUpdate(options) {
       if (!state.isMatchingCssModule(options.file)) return
       await state.applyFileChange(options.file)
+      const graph = this.environment.moduleGraph
       const extra = []
       for (const virtualId of VIRTUAL_REGISTRY_IDS) {
-        const mod = this.environment.moduleGraph.getModuleById(virtualId)
+        const mod = graph.getModuleById(virtualId)
         if (!mod) continue
-        this.environment.moduleGraph.invalidateModule(mod)
+        graph.invalidateModule(mod)
         extra.push(mod)
+      }
+      for (const filePath of state.takeRemappedFiles()) {
+        if (filePath === options.file) continue
+        const mods = graph.getModulesByFile(filePath)
+        if (!mods) continue
+        for (const mod of mods) {
+          graph.invalidateModule(mod)
+          extra.push(mod)
+        }
       }
       return [...options.modules, ...extra]
     },

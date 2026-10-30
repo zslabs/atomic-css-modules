@@ -20,7 +20,7 @@ export interface AtomicCssModulesPluginOptions {
   /**
    * Readable atom names (`color-red-a1b2c3`) instead of production hashes.
    * The trailing key hash keeps different at-rule conditions from colliding.
-   * Defaults to true in dev/watch and false in production builds.
+   * Defaults to true for `vite serve` and webpack/Rspack development mode.
    */
   debugNames?: boolean
   /**
@@ -45,10 +45,29 @@ export interface AtomicPluginState {
   readonly includePatterns: readonly string[]
   readonly root: string
   readonly registryCss: string
-  configure(settings: { root: string; debugNames: boolean }): void
+  readonly registryHash: string
+  configure(settings: {
+    root: string
+    debugNames: boolean
+    sourceMap: boolean
+  }): boolean
   isMatchingCssModule(filePath: string): boolean
+  cssModulePaths(): readonly string[]
   syncFromDisk(): Promise<AtomizationReport>
   applyFileChange(filePath: string): Promise<void>
+  /**
+   * Update the cache from a bundler watcher's file sets.
+   * Returns false when no matching CSS module changed.
+   */
+  applyWatchChanges(
+    modified: ReadonlySet<string>,
+    removed: ReadonlySet<string>
+  ): Promise<boolean>
+  takeRemappedFiles(): string[]
+  rememberBuiltModule(filePath: string, module: object): void
+  builtModule(filePath: string): object | undefined
+  noteEmittedRegistryHash(hash: string): void
+  emittedRegistryHash(): string
   rewriteCssModule(filePath: string, code: string): RewrittenModule | null
   formatReport(report: AtomizationReport): string
 }
@@ -106,7 +125,12 @@ export function createAtomicPluginState(
 
   let root = process.cwd()
   let debugNames = false
+  let sourceMap = false
   let registryCss = ''
+  let registryHash = ''
+  let remappedFiles: string[] = []
+  let emittedRegistryHash = ''
+  const builtModules = new Map<string, object>()
   const cache = new FileScanCache()
 
   function prepareSource(filePath: string, code: string): SourceFile {
@@ -119,6 +143,8 @@ export function createAtomicPluginState(
   function publishSnapshot(): AtomizationReport {
     const snap = cache.snapshot()
     registryCss = snap.registryCss
+    registryHash = snap.registryHash
+    remappedFiles = snap.remappedFiles
     return snap.report
   }
 
@@ -148,6 +174,82 @@ export function createAtomicPluginState(
     return publishSnapshot()
   }
 
+  async function applyWatchChanges(
+    modified: ReadonlySet<string>,
+    removed: ReadonlySet<string>
+  ): Promise<boolean> {
+    let dirty = false
+    for (const filePath of removed) {
+      if (!cache.has(filePath)) continue
+      cache.remove(filePath)
+      dirty = true
+    }
+
+    const reads = await Promise.all(
+      [...modified].map(async (filePath) => readIfCss(filePath))
+    )
+    const imported = await cssModulesImportedBy(modified, reads)
+    for (const file of [...reads, ...imported]) {
+      if (!file) continue
+      if (file.code === undefined || !isMatchingCssModule(file.filePath)) {
+        if (!cache.has(file.filePath)) continue
+        cache.remove(file.filePath)
+        dirty = true
+        continue
+      }
+      if (cache.update(prepareSource(file.filePath, file.code))) dirty = true
+    }
+
+    if (!dirty) return false
+    publishSnapshot()
+    return true
+  }
+
+  async function readIfCss(
+    filePath: string
+  ): Promise<{ filePath: string; code?: string } | undefined> {
+    if (!isMatchingCssModule(filePath) && !cache.has(filePath)) return
+    try {
+      return { filePath, code: await fs.readFile(filePath, 'utf8') }
+    } catch (error) {
+      if (!isEnoent(error)) throw error
+      return { filePath }
+    }
+  }
+
+  /** A new CSS module often arrives as an import in a changed JS file, and
+   * the watcher does not list the CSS file itself. */
+  async function cssModulesImportedBy(
+    modified: ReadonlySet<string>,
+    alreadyRead: Array<{ filePath: string } | undefined>
+  ): Promise<Array<{ filePath: string; code?: string } | undefined>> {
+    const seen = new Set(
+      alreadyRead.flatMap((file) => (file ? [file.filePath] : []))
+    )
+    const extra = new Set<string>()
+    await Promise.all(
+      [...modified].filter(isJsModule).map(async (filePath) => {
+        let code: string
+        try {
+          code = await fs.readFile(filePath, 'utf8')
+        } catch (error) {
+          if (!isEnoent(error)) throw error
+          return
+        }
+        for (const spec of code.matchAll(/['"]([^'"]+\.module\.css)['"]/g)) {
+          const request = spec[1]
+          if (!request) continue
+          const resolved = path.isAbsolute(request)
+            ? request
+            : path.resolve(path.dirname(filePath), request)
+          if (!isMatchingCssModule(resolved) || seen.has(resolved)) continue
+          extra.add(resolved)
+        }
+      })
+    )
+    return Promise.all([...extra].map((filePath) => readIfCss(filePath)))
+  }
+
   async function applyFileChange(filePath: string): Promise<void> {
     try {
       const code = await fs.readFile(filePath, 'utf8')
@@ -175,7 +277,7 @@ export function createAtomicPluginState(
       {
         registryImportPath: '',
         composeFrom: 'global',
-        sourceMap: true,
+        sourceMap,
         debugNames,
       },
       cache.getAtoms()
@@ -192,14 +294,39 @@ export function createAtomicPluginState(
     get registryCss() {
       return registryCss
     },
+    get registryHash() {
+      return registryHash
+    },
     configure(settings) {
       root = settings.root
       debugNames = settings.debugNames
-      cache.setDebugNames(debugNames)
+      sourceMap = settings.sourceMap
+      return cache.setDebugNames(debugNames)
     },
     isMatchingCssModule,
+    cssModulePaths() {
+      return cache.filePaths()
+    },
     syncFromDisk,
     applyFileChange,
+    applyWatchChanges,
+    takeRemappedFiles() {
+      const files = remappedFiles
+      remappedFiles = []
+      return files
+    },
+    rememberBuiltModule(filePath, module) {
+      builtModules.set(filePath, module)
+    },
+    builtModule(filePath) {
+      return builtModules.get(filePath)
+    },
+    noteEmittedRegistryHash(hash) {
+      emittedRegistryHash = hash
+    },
+    emittedRegistryHash() {
+      return emittedRegistryHash
+    },
     rewriteCssModule,
     formatReport(report) {
       return formatAtomizationReport(report, {
