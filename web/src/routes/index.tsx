@@ -3,6 +3,7 @@ import BroomSparkle from '@/assets/broom-sparkle.svg?react'
 import Terminal from '@/assets/terminal.svg?react'
 import { CodeBlock } from '@/components/code-block/code-block'
 import { CodeMagicMove } from '@/components/code-magic-move/code-magic-move'
+import { InstallTabs } from '@/components/install-tabs/install-tabs'
 import { Footer } from '@/components/footer/footer'
 import { Header } from '@/components/header/header'
 import { Hero } from '@/components/hero/hero'
@@ -28,14 +29,7 @@ function HomePage() {
         </Section>
         <Section id="install" title="Install" icon={<Terminal />}>
           <CodeBlock copy snippet={SNIPPETS.install} />
-          <CodeBlock snippet={SNIPPETS.viteConfig} filename="vite.config.ts" />
-          <CodeBlock
-            snippet={SNIPPETS.webpackConfig}
-            filename="webpack.config.js"
-          />
-          <p className={styles.installNote}>
-            Rspack uses the same plugin, with css-loader or its native CSS.
-          </p>
+          <InstallTabs />
         </Section>
         <Section id="stylelint" title="Stylelint" icon={<BroomSparkle />}>
           <div className={styles.lintContainer}>

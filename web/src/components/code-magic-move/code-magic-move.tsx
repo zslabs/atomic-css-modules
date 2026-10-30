@@ -1,4 +1,5 @@
 import FaceKissHeartEyes from '@/assets/face-kiss-heart-eyes.svg?react'
+import { tokens } from '@/css/tokens'
 import { ShikiMagicMovePrecompiled } from '@shikijs/magic-move/react'
 import '@shikijs/magic-move/style.css'
 import type { KeyedTokensInfo } from '@shikijs/magic-move/types'
@@ -8,6 +9,42 @@ import { COMPILED_STEPS, STEPS, type StepId } from 'virtual:magic-move-steps'
 import styles from './code-magic-move.module.css'
 
 const compiledSteps: KeyedTokensInfo[] = COMPILED_STEPS.slice()
+
+const pillTransition = {
+  duration: durationTokenSeconds(tokens.duration['200']),
+  ease: cubicBezierToken(tokens.ease.out),
+}
+
+function durationTokenSeconds(value: string): number {
+  const amount = Number.parseFloat(value)
+  if (Number.isNaN(amount)) {
+    throw new Error(`Expected a duration token, received "${value}"`)
+  }
+  if (value.endsWith('ms')) return amount / 1000
+  return amount
+}
+
+function cubicBezierToken(
+  value: string
+): readonly [number, number, number, number] {
+  const parts = value
+    .slice(value.indexOf('(') + 1, value.lastIndexOf(')'))
+    .split(',')
+    .map((part) => Number(part.trim()))
+  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part))) {
+    throw new Error(`Expected a cubic-bezier token, received "${value}"`)
+  }
+  const [x1, y1, x2, y2] = parts
+  if (
+    x1 === undefined ||
+    y1 === undefined ||
+    x2 === undefined ||
+    y2 === undefined
+  ) {
+    throw new Error(`Expected a cubic-bezier token, received "${value}"`)
+  }
+  return [x1, y1, x2, y2]
+}
 
 export function CodeMagicMove() {
   const [stepId, setStepId] = useState<StepId>('before')
@@ -50,6 +87,7 @@ export function CodeMagicMove() {
                 <motion.span
                   layoutId="magic-move-pill"
                   className={styles.pill}
+                  transition={pillTransition}
                 />
               ) : null}
             </button>

@@ -14,12 +14,18 @@ export default {
         'token-text': {
           prelude: '<custom-ident> | <string>',
         },
+        'atomic-css-modules': {
+          prelude: '',
+        },
       },
     },
   },
   rules: {
     'selector-class-pattern': null,
-    'at-rule-no-unknown': [true, { ignoreAtRules: ['token-text'] }],
+    'at-rule-no-unknown': [
+      true,
+      { ignoreAtRules: ['token-text', 'atomic-css-modules'] },
+    ],
     'function-no-unknown': [true, { ignoreFunctions: ['token'] }],
     'declaration-property-value-no-unknown': [
       true,

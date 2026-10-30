@@ -25,15 +25,15 @@ export default defineConfig({
 })
 ```
 
-webpack 5 and Rspack are supported through `AtomicCssModulesWebpackPlugin` from `@zslabs/atomic-css-modules/webpack`. See the [package README](./packages/atomic-css-modules/README.md#webpack--rspack) for setup.
+webpack 5 and Rspack are supported through `AtomicCssModulesWebpackPlugin` from `@zslabs/atomic-css-modules/webpack`. Next.js, including Turbopack, uses the [PostCSS plugin](./packages/atomic-css-modules/README.md#nextjs). See the [package README](./packages/atomic-css-modules/README.md#webpack--rspack) for webpack and Rspack setup.
 
-| Option       | Default                         | Notes                                               |
-| ------------ | ------------------------------- | --------------------------------------------------- |
-| `include`    | `**/*.module.css`               | Globs relative to the Vite root or webpack context  |
-| `exclude`    | `**/node_modules/**`            |                                                     |
-| `debugNames` | `true` in dev, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes |
-| `report`     | `"summary"`                     | `"verbose"` lists each skipped selector             |
-| `preprocess` | —                               | `(code, filePath) => code` before scan/atomize      |
+| Option       | Default                         | Notes                                                            |
+| ------------ | ------------------------------- | ---------------------------------------------------------------- |
+| `include`    | `**/*.module.css`               | Globs relative to the Vite root, webpack context, or PostCSS cwd |
+| `exclude`    | `**/node_modules/**`            |                                                                  |
+| `debugNames` | `true` in dev, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes              |
+| `report`     | `"summary"`                     | `"verbose"` lists each skipped selector                          |
+| `preprocess` | —                               | `(code, filePath) => code` before scan/atomize                   |
 
 ## How it works
 

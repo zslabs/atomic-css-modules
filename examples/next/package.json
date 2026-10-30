@@ -1,0 +1,15 @@
+{
+  "name": "example-next",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build -w @zslabs/atomic-css-modules && next dev --port 3456",
+    "build": "npm run build -w @zslabs/atomic-css-modules && next build"
+  },
+  "dependencies": {
+    "@zslabs/atomic-css-modules": "*",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  }
+}

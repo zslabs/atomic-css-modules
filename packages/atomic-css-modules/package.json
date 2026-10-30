@@ -5,6 +5,8 @@
   "keywords": [
     "atomic-css",
     "css-modules",
+    "nextjs",
+    "postcss",
     "rspack",
     "rspack-plugin",
     "vite",
@@ -43,6 +45,10 @@
       "types": "./dist/vite-plugin.d.ts",
       "import": "./dist/vite-plugin.js"
     },
+    "./postcss": {
+      "types": "./dist/postcss-plugin.d.ts",
+      "import": "./dist/postcss-plugin.js"
+    },
     "./webpack": {
       "types": "./dist/webpack-plugin.d.ts",
       "import": "./dist/webpack-plugin.js"
@@ -69,6 +75,7 @@
     "@types/node": "26.6.2",
     "css-loader": "7.1.5",
     "mini-css-extract-plugin": "2.10.2",
+    "postcss": "8.5.32",
     "typescript": "7.0.2",
     "vite": "8.3.1",
     "vitest": "5.0.1",
@@ -77,6 +84,7 @@
   "peerDependencies": {
     "@rspack/core": "^2.0.0",
     "css-loader": "^7.0.0",
+    "postcss": "^8.0.0",
     "vite": "^8.0.0",
     "webpack": "^5.0.0"
   },
@@ -85,6 +93,9 @@
       "optional": true
     },
     "css-loader": {
+      "optional": true
+    },
+    "postcss": {
       "optional": true
     },
     "vite": {

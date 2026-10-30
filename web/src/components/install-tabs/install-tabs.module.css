@@ -1,0 +1,43 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  isolation: isolate;
+  gap: token('spacing.1');
+  margin-block-start: token('spacing.2');
+}
+
+.tab {
+  position: relative;
+  padding-block: token('spacing.1.5');
+  padding-inline: token('spacing.3');
+  text-transform: uppercase;
+  transition: background-color token('duration.100') token('ease.in');
+  line-height: 1;
+  font-size: token('text.lg');
+  border-radius: token('radius.full');
+  cursor: pointer;
+
+  &:hover {
+    background-color: token('color.slate.2');
+  }
+}
+
+.label {
+  position: relative;
+  z-index: 1;
+  color: token('color.slate.12');
+  mix-blend-mode: exclusion;
+}
+
+.pill {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: token('color.slate.12');
+  border-radius: token('radius.full');
+  interpolate-size: allow-keywords;
+  transition-property: translate, width, height;
+  transition-duration: token('duration.200');
+  transition-timing-function: token('ease.out');
+}

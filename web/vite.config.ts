@@ -97,27 +97,47 @@ export default defineConfig({
 `,
   },
   {
-    id: 'webpackConfig',
+    id: 'rspackConfig',
     lang: 'typescript',
-    code: `import MiniCssExtractPlugin from 'mini-css-extract-plugin'
-import { AtomicCssModulesWebpackPlugin } from
-  '@zslabs/atomic-css-modules/webpack'
+    code: `import { AtomicCssModulesWebpackPlugin } from '@zslabs/atomic-css-modules/webpack'
 
 export default {
+  experiments: {
+    css: true,
+  },
   module: {
     rules: [
       {
         test: /\\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+        type: 'css/auto',
       },
     ],
   },
   plugins: [
-    new MiniCssExtractPlugin(),
     new AtomicCssModulesWebpackPlugin({
       include: ['src/**/*.module.css'],
     }),
   ],
+}
+`,
+  },
+  {
+    id: 'postcssConfig',
+    lang: 'typescript',
+    code: `import { atomicCssModulesPostcss } from '@zslabs/atomic-css-modules/postcss'
+
+export default {
+  plugins: [atomicCssModulesPostcss()],
+}
+`,
+  },
+  {
+    id: 'postcssGlobals',
+    lang: 'css',
+    code: `@atomic-css-modules;
+
+body {
+  margin: 0;
 }
 `,
   },

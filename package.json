@@ -24,6 +24,7 @@
     "web:build": "npm run build -w web",
     "web:start": "npm run start -w web",
     "example:webpack": "npm run dev -w example-webpack",
+    "example:next": "npm run dev -w example-next",
     "tokens:snippets": "npm run tokens:snippets -w web",
     "tokens:hover:install": "node ./extensions/design-token-hover/install.mjs"
   },
