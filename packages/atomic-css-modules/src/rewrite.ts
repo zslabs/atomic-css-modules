@@ -19,6 +19,8 @@ import {
   classifySelector,
   selectorKey,
 } from './selector-utils.js'
+import { userStylesheetOptions } from './lightning-options.js'
+import { isOverrideConflictError } from './override-conflicts.js'
 import { hasAtomicSkipComment } from './skip-comment.js'
 import {
   isBareCondition,
@@ -280,6 +282,7 @@ function rewriteFile(
     filename: file.filePath,
     code: Buffer.from(file.code, 'utf8'),
     sourceMap: options.sourceMap === true,
+    ...userStylesheetOptions(options.customAtRules),
     visitor: {
       Rule(rule) {
         const context = tracker.enter(rule)
@@ -594,13 +597,6 @@ function explodeGroupedComposesInAst(rules: Rule[]): Rule[] {
   return out
 }
 
-function sheetHasImportOrNamespace(rules: readonly Rule[]): boolean {
-  for (const rule of rules) {
-    if (rule.type === 'import' || rule.type === 'namespace') return true
-  }
-  return false
-}
-
 function finalizeStylesheet(
   css: string,
   filename: string,
@@ -615,14 +611,14 @@ function finalizeStylesheet(
     filename,
     code: Buffer.from(css, 'utf8'),
     sourceMap: extras.options.sourceMap === true,
+    ...userStylesheetOptions(extras.options.customAtRules),
     ...(extras.inputSourceMap ? { inputSourceMap: extras.inputSourceMap } : {}),
     visitor: {
       StyleSheetExit(sheet) {
-        // Only deep-clone when @import/@namespace null optionals would break
-        // re-serialize; otherwise mutate in place.
-        const target = sheetHasImportOrNamespace(sheet.rules)
-          ? stripNullsDeep(sheet)
-          : sheet
+        // lightningcss visitors surface Option::None as JSON null. Sending
+        // those back fails for var() specifiers and unknown at-rules, whether
+        // or not the file has @import.
+        const target = stripNullsDeep(sheet)
         target.rules = pruneEmptyAtRules(target.rules)
         mergeComposesDeclarations(target.rules, extras.options)
         for (const [key, { selector, hashes }] of extras.crossRuleAtoms) {
@@ -659,6 +655,25 @@ export function rewriteFiles(
     const scanFile = scanByPath.get(file.filePath)
     if (!scanFile)
       throw new Error(`No scan result found for file: ${file.filePath}`)
-    return rewriteFile(file, scanFile, options, atoms)
+    if (scanFile.failure) {
+      return {
+        filePath: file.filePath,
+        code: file.code,
+        changed: false,
+        failure: scanFile.failure,
+      }
+    }
+    try {
+      return rewriteFile(file, scanFile, options, atoms)
+    } catch (error) {
+      if (options.strict || isOverrideConflictError(error)) throw error
+      const message = error instanceof Error ? error.message : String(error)
+      return {
+        filePath: file.filePath,
+        code: file.code,
+        changed: false,
+        failure: message,
+      }
+    }
   })
 }

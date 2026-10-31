@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { FileScanCache } from '../src/file-scan-cache.js'
 
@@ -92,5 +95,23 @@ describe('FileScanCache', () => {
     })
 
     expect(forward.snapshot().registryCss).toBe(reverse.snapshot().registryCss)
+  })
+
+  it('reuses a scan stored on disk', () => {
+    const cacheDir = mkdtempSync(path.join(tmpdir(), 'atomic-scan-cache-'))
+    const options = { cacheDir, policyKey: 'test-policy' }
+    const file = { filePath: 'a.module.css', code: '.a { color: red; }\n' }
+    try {
+      const first = new FileScanCache(options)
+      expect(first.update(file)).toBe(true)
+      expect(first.loadedFromDisk(file.filePath)).toBe(false)
+
+      const second = new FileScanCache(options)
+      expect(second.update(file)).toBe(true)
+      expect(second.loadedFromDisk(file.filePath)).toBe(true)
+      expect(second.snapshot().registryCss).toBe(first.snapshot().registryCss)
+    } finally {
+      rmSync(cacheDir, { recursive: true, force: true })
+    }
   })
 })

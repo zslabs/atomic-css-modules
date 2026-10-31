@@ -53,6 +53,14 @@ function slug(value: string): string {
  */
 const printedDeclarations = new Map<string, string>()
 
+export function printedDeclarationText(
+  declaration: Declaration,
+  important: boolean,
+  fingerprint: string
+): string {
+  return printedDeclaration(declaration, important, fingerprint)
+}
+
 function printedDeclaration(
   declaration: Declaration,
   important: boolean,

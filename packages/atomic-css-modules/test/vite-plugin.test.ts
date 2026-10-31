@@ -28,6 +28,7 @@ async function setupProject(source: string): Promise<{
 
   const plugin = atomicCssModules({
     include: ['**/*.module.css'],
+    minOccurrences: 1,
   })
 
   const configResolved = plugin.configResolved
@@ -90,7 +91,10 @@ describe('vite plugin atomization report', () => {
       '.a .b { display: block; }\n'
     )
 
-    const plugin = atomicCssModules({ include: ['**/*.module.css'] })
+    const plugin = atomicCssModules({
+      include: ['**/*.module.css'],
+      minOccurrences: 1,
+    })
     const configResolved = plugin.configResolved
     if (typeof configResolved !== 'function') {
       throw new Error('expected configResolved function')
@@ -144,7 +148,11 @@ describe('vite plugin virtual registry', () => {
       throw new Error('expected transform function')
     }
 
-    const result = transform.call({}, '.button { color: red; }\n', cssPath)
+    const result = await transform.call(
+      {},
+      '.button { color: red; }\n',
+      cssPath
+    )
     if (!result || typeof result === 'string') {
       throw new Error('expected transform result')
     }
@@ -153,8 +161,11 @@ describe('vite plugin virtual registry', () => {
     expect(result.map).toBeFalsy()
   })
 
-  it('emits a source map when css.devSourcemap is enabled', () => {
-    const plugin = atomicCssModules({ include: ['**/*.module.css'] })
+  it('emits a source map when css.devSourcemap is enabled', async () => {
+    const plugin = atomicCssModules({
+      include: ['**/*.module.css'],
+      minOccurrences: 1,
+    })
     const configResolved = plugin.configResolved
     if (typeof configResolved !== 'function') {
       throw new Error('expected configResolved function')
@@ -169,7 +180,7 @@ describe('vite plugin virtual registry', () => {
     if (typeof transform !== 'function') {
       throw new Error('expected transform function')
     }
-    const result = transform.call(
+    const result = await transform.call(
       {},
       '.button { color: red; }\n',
       '/app/button.module.css'
@@ -184,7 +195,10 @@ describe('vite plugin virtual registry', () => {
     const css = '.button { color: red; }\n'
     const filePath = '/app/button.module.css'
 
-    const servePlugin = atomicCssModules({ include: ['**/*.module.css'] })
+    const servePlugin = atomicCssModules({
+      include: ['**/*.module.css'],
+      minOccurrences: 1,
+    })
     const serveConfig = servePlugin.configResolved
     if (typeof serveConfig !== 'function') {
       throw new Error('expected configResolved function')
@@ -194,7 +208,7 @@ describe('vite plugin virtual registry', () => {
     if (typeof serveTransform !== 'function') {
       throw new Error('expected transform function')
     }
-    const serveResult = serveTransform.call({}, css, filePath)
+    const serveResult = await serveTransform.call({}, css, filePath)
     if (!serveResult || typeof serveResult === 'string') {
       throw new Error('expected transform result')
     }
@@ -205,6 +219,7 @@ describe('vite plugin virtual registry', () => {
     const hashedPlugin = atomicCssModules({
       include: ['**/*.module.css'],
       debugNames: false,
+      minOccurrences: 1,
     })
     const hashedConfig = hashedPlugin.configResolved
     if (typeof hashedConfig !== 'function') {
@@ -215,7 +230,7 @@ describe('vite plugin virtual registry', () => {
     if (typeof hashedTransform !== 'function') {
       throw new Error('expected transform function')
     }
-    const hashedResult = hashedTransform.call({}, css, filePath)
+    const hashedResult = await hashedTransform.call({}, css, filePath)
     if (!hashedResult || typeof hashedResult === 'string') {
       throw new Error('expected transform result')
     }
@@ -225,14 +240,14 @@ describe('vite plugin virtual registry', () => {
     )
   })
 
-  it('injects the virtual registry import into JS files that load CSS modules', () => {
+  it('injects the virtual registry import into JS files that load CSS modules', async () => {
     const plugin = atomicCssModules()
     const transform = plugin.transform
     if (typeof transform !== 'function') {
       throw new Error('expected transform function')
     }
 
-    const result = transform.call(
+    const result = await transform.call(
       {},
       'import styles from "./App.module.css"\n',
       '/app/src/App.tsx'
@@ -244,14 +259,14 @@ describe('vite plugin virtual registry', () => {
     expect(result.code).toContain('import styles from "./App.module.css"')
   })
 
-  it('injects the registry for a dynamic import that still has a .module.css literal', () => {
+  it('injects the registry for a dynamic import that still has a .module.css literal', async () => {
     const plugin = atomicCssModules()
     const transform = plugin.transform
     if (typeof transform !== 'function') {
       throw new Error('expected transform function')
     }
 
-    const result = transform.call(
+    const result = await transform.call(
       {},
       'const styles = await import("./App.module.css")\n',
       '/app/src/App.tsx'
@@ -262,9 +277,10 @@ describe('vite plugin virtual registry', () => {
     expect(result.code).toContain(`import "${ATOMIC_REGISTRY_ID}"`)
   })
 
-  it('runs preprocess before scan and rewrite', () => {
+  it('runs preprocess before scan and rewrite', async () => {
     const plugin = atomicCssModules({
       include: ['**/*.module.css'],
+      minOccurrences: 1,
       preprocess: (code) => code.replace('TOKEN_RED', 'red'),
     })
     const configResolved = plugin.configResolved
@@ -277,7 +293,7 @@ describe('vite plugin virtual registry', () => {
     if (typeof transform !== 'function') {
       throw new Error('expected transform function')
     }
-    const result = transform.call(
+    const result = await transform.call(
       {},
       '.button { color: TOKEN_RED; }\n',
       '/app/button.module.css'

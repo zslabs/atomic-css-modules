@@ -185,9 +185,16 @@ export function atomicCssModules(
       }
       return [...options.modules, ...extra]
     },
-    transform(code, id) {
+    async transform(code, id) {
       const [cleanId = id] = id.split('?')
-      if (needsRegistryImport(cleanId, code, ATOMIC_REGISTRY_ID)) {
+      if (
+        needsRegistryImport(
+          cleanId,
+          code,
+          ATOMIC_REGISTRY_ID,
+          state.moduleSuffixes
+        )
+      ) {
         return { code: prependRegistryImport(code, ATOMIC_REGISTRY_ID) }
       }
       return state.rewriteCssModule(cleanId, code)

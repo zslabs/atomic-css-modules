@@ -32,6 +32,8 @@ interface BuildSettings {
   mode: Mode
   plugin: AtomicCssModulesPluginOptions
   devtool?: false | 'source-map'
+  entry?: string
+  outputPath?: string
 }
 
 interface StatsModule {
@@ -81,10 +83,10 @@ function baseConfig(settings: BuildSettings): BaseConfig {
   return {
     mode: settings.mode,
     context: settings.dir,
-    entry: './src/index.js',
+    entry: settings.entry ?? './src/index.js',
     devtool: settings.devtool ?? false,
     output: {
-      path: path.join(settings.dir, 'dist'),
+      path: settings.outputPath ?? path.join(settings.dir, 'dist'),
       library: { type: 'commonjs2' },
     },
     optimization: { minimize: false },
@@ -353,6 +355,7 @@ describe.each(bundlers)('$name plugin', (bundler) => {
         mode: 'development',
         plugin: {
           exclude: ['**/skip.module.css'],
+          minOccurrences: 1,
           preprocess: (code) => code.replace('TOKEN_RED', 'red'),
         },
       })
@@ -368,7 +371,11 @@ describe.each(bundlers)('$name plugin', (bundler) => {
   it('rebuilds the registry in watch mode as modules change', async () => {
     const dir = await setupProject(SHARED_FIXTURE)
     const watcher = startWatching(
-      bundler.createCompiler({ dir, mode: 'development', plugin: {} })
+      bundler.createCompiler({
+        dir,
+        mode: 'development',
+        plugin: { minOccurrences: 1 },
+      })
     )
     try {
       await watcher.nextBuild()
@@ -407,4 +414,144 @@ describe.each(bundlers)('$name plugin', (bundler) => {
       await watcher.close()
     }
   }, 20_000)
+
+  it('emits a registry for the modules this compilation uses', async () => {
+    const dir = await setupProject({
+      'a-index.js':
+        'import a from "./a.module.css"\nexport const classes = [a.a, a.a2]\n',
+      'b-index.js':
+        'import b from "./b.module.css"\nexport const classes = [b.b, b.b2]\n',
+      'a.module.css': '.a { color: red; }\n.a2 { color: red; }\n',
+      'b.module.css': '.b { color: blue; }\n.b2 { color: blue; }\n',
+    })
+    await runOnce(
+      bundler.createCompiler({
+        dir,
+        mode: 'development',
+        plugin: { include: ['**/*.module.css'] },
+        entry: './src/a-index.js',
+        outputPath: path.join(dir, 'dist-a'),
+      })
+    )
+    await runOnce(
+      bundler.createCompiler({
+        dir,
+        mode: 'development',
+        plugin: { include: ['**/*.module.css'] },
+        entry: './src/b-index.js',
+        outputPath: path.join(dir, 'dist-b'),
+      })
+    )
+    const aCss = await readFile(path.join(dir, 'dist-a', 'main.css'), 'utf8')
+    const bCss = await readFile(path.join(dir, 'dist-b', 'main.css'), 'utf8')
+    expect(aCss).toMatch(/color:\s*(?:red|#f00)/)
+    expect(aCss).not.toMatch(/#00f|blue/)
+    expect(bCss).toMatch(/color:\s*(?:blue|#00f)/)
+    expect(bCss).not.toMatch(/red|#f00/)
+  })
 })
+
+describe('less modules', () => {
+  const lessLoader = require.resolve('less-loader')
+
+  it.each([
+    ['webpack', webpackCompiler],
+    ['rspack', rspackCompiler],
+  ] as const)(
+    '%s atomizes compiled .module.less without a second less pass',
+    async (_name, create) => {
+      const dir = await setupProject({
+        'index.js':
+          'import card from "./card.module.less"\nexport const classes = [card.a, card.b]\n',
+        'tokens.less': '@brand: red;\n',
+        'card.module.less': [
+          '@import "tokens.less";',
+          '.a { color: @brand; filter: ~"saturate(1.2)"; }',
+          '.b { color: @brand; }',
+          '',
+        ].join('\n'),
+      })
+      await runOnce(
+        create({
+          dir,
+          lessLoader,
+        })
+      )
+      const css = await readOutput(dir, 'main.css')
+      expect(css).toMatch(/saturate\(1\.2\)/)
+      expect(css.match(/color:\s*(?:red|#f00)/g)).toHaveLength(1)
+    }
+  )
+})
+
+function webpackCompiler(settings: {
+  dir: string
+  lessLoader: string
+}): CompilerLike {
+  return webpack({
+    ...baseConfig({
+      dir: settings.dir,
+      mode: 'development',
+      plugin: { include: ['**/*.module.less'] },
+    }),
+    module: {
+      rules: [
+        {
+          test: /\.less$/,
+          use: [
+            MiniCssExtractPlugin.loader,
+            { loader: CSS_LOADER, options: CSS_LOADER_OPTIONS },
+            settings.lessLoader,
+          ],
+        },
+        {
+          test: /\.css$/,
+          use: [
+            MiniCssExtractPlugin.loader,
+            { loader: CSS_LOADER, options: CSS_LOADER_OPTIONS },
+          ],
+        },
+      ],
+    },
+    plugins: [
+      new MiniCssExtractPlugin(),
+      new AtomicCssModulesWebpackPlugin({ include: ['**/*.module.less'] }),
+    ],
+  })
+}
+
+function rspackCompiler(settings: {
+  dir: string
+  lessLoader: string
+}): CompilerLike {
+  return rspack({
+    ...baseConfig({
+      dir: settings.dir,
+      mode: 'development',
+      plugin: { include: ['**/*.module.less'] },
+    }),
+    module: {
+      rules: [
+        {
+          test: /\.less$/,
+          use: [
+            rspack.CssExtractRspackPlugin.loader,
+            { loader: CSS_LOADER, options: CSS_LOADER_OPTIONS },
+            settings.lessLoader,
+          ],
+        },
+        {
+          test: /\.css$/,
+          use: [
+            rspack.CssExtractRspackPlugin.loader,
+            { loader: CSS_LOADER, options: CSS_LOADER_OPTIONS },
+          ],
+        },
+      ],
+    },
+    plugins: [
+      new rspack.CssExtractRspackPlugin(),
+      new AtomicCssModulesWebpackPlugin({ include: ['**/*.module.less'] }),
+    ],
+  })
+}

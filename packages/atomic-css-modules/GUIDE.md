@@ -29,7 +29,7 @@ The shared registry is emitted in a fixed order:
 2. Then by property name
 3. Then by atom key (value / `!important` / pseudo / at-rule condition)
 
-Equal-specificity atoms win by that stylesheet order. Changing `composes` name order or the HTML `class` attribute does not change which atom wins. If two local classes set the same property to different values, keep the declarations on one rule or use `/* atomic: skip */`.
+Equal-specificity atoms win by that stylesheet order. Changing `composes` name order or the HTML `class` attribute does not change which atom wins. Two classes in the same file that set one property to different values are left local (`conflicts` defaults to `"skip"`). The same clash across files is not detected. `conflicts: "allow"` hoists both and lets this order decide.
 
 ## Size and compression
 
@@ -37,6 +37,6 @@ Raw registry bytes can shrink when the same declarations repeat. Over the wire, 
 
 ## Non-goals
 
-- Last-wins overrides from stacking local classes that set the same property
+- Detecting override conflicts across files
 - Atomizing combinators or compounds while still using Modules `composes`
 - Reimplementing CSS Modules compose resolution here

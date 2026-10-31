@@ -77,7 +77,7 @@ export const atomicCssModulesPostcss: PluginCreator<
 
       const input = root.source?.input.css
       if (input === undefined) return
-      const rewritten = state.rewriteCssModule(filePath, input)
+      const rewritten = await state.rewriteCssModule(filePath, input)
       if (!rewritten) return
       replaceRoot(root, postcss, rewritten.code, from)
     },
