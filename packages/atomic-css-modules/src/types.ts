@@ -173,7 +173,10 @@ export interface ProcessOptions {
   minOccurrences?: number
   /** Extra names CSS Modules may rename. Keyframes and counter-styles are always local. */
   localIdents?: LocalIdentOptions
-  /** Passed through to lightningcss so known custom at-rules can round-trip. */
+  /**
+   * Custom at-rules with a body are passed through to lightningcss.
+   * Statement at-rules are left unknown so the printer keeps their semicolons.
+   */
   customAtRules?: AtomicCustomAtRules
   /** When true, a scan or rewrite exception fails the build instead of keeping the original file. */
   strict?: boolean

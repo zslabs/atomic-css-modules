@@ -1109,6 +1109,38 @@ describe('lightningcss round trip', () => {
   })
 })
 
+describe('custom at-rules', () => {
+  it('keeps the semicolon between statement at-rules', () => {
+    const result = processCssModules(
+      [
+        {
+          filePath: 'tokens.module.css',
+          code: [
+            '@token-block "card" { color: blue; }',
+            '@token-overflow "truncate";',
+            '@token-text "caption";',
+            '.a { color: red; }',
+            '.b { color: red; }',
+          ].join('\n'),
+        },
+      ],
+      {
+        registryImportPath,
+        customAtRules: {
+          'token-block': { prelude: '<string>', body: 'style-block' },
+          'token-overflow': { prelude: '<string>', body: null },
+          'token-text': { prelude: '<string>', body: null },
+        },
+      }
+    )
+    const file = result.files[0]
+    if (!file) throw new Error('expected one rewritten file')
+    expect(file.code).toMatch(/@token-overflow "truncate";/)
+    expect(file.code).toMatch(/@token-text "caption";/)
+    expect(file.code).toMatch(/#00f/)
+  })
+})
+
 describe('per-file failures', () => {
   it('keeps the broken file and still atomizes its neighbor', () => {
     const result = processCssModules(

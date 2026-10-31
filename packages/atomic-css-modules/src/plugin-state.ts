@@ -22,6 +22,16 @@ import type {
   SourceFile,
 } from './types.js'
 
+export interface PreprocessResult {
+  code: string
+  /** Files this compiled CSS depends on, other than the source file. */
+  dependencies?: readonly string[]
+}
+
+interface PreparedFile extends SourceFile {
+  raw?: { code: string; dependencies?: readonly string[] }
+}
+
 export interface AtomicCssModulesPluginOptions {
   /** Glob(s), relative to the project root, matching CSS Modules files to atomize. */
   include?: string | string[]
@@ -39,12 +49,19 @@ export interface AtomicCssModulesPluginOptions {
    */
   report?: 'summary' | 'verbose'
   /**
-   * Rewrite CSS before scan/atomize (e.g. expand design-token at-rules or
-   * compile LESS the same way the bundler does). Runs for disk sync and for
-   * rewrite when the bundler has not already compiled the file. Must
-   * reproduce the bundler's aliases, global variables, and plugins.
+   * Compile a file before scan and atomize (design tokens, or LESS the same
+   * way the bundler does). Runs for disk sync and for rewrite when the
+   * bundler has not already compiled the file. It has to reproduce the
+   * bundler's aliases, global variables, and plugins.
+   *
+   * Return `{ code, dependencies }` when compilation reads other files. A
+   * warm start skips this function while the source and those files are
+   * unchanged. A string return is still fine when the file has no imports.
    */
-  preprocess?: (code: string, filePath: string) => string | Promise<string>
+  preprocess?: (
+    code: string,
+    filePath: string
+  ) => string | PreprocessResult | Promise<string | PreprocessResult>
   conflicts?: ConflictMode
   /** Defaults to 2 for bundler plugins. */
   minOccurrences?: number
@@ -193,10 +210,15 @@ export function createAtomicPluginState(
   async function prepareSource(
     filePath: string,
     code: string
-  ): Promise<SourceFile> {
+  ): Promise<PreparedFile> {
+    if (preprocess === undefined) return { filePath, code }
+    const cached = cache.reuseRaw(filePath, code)
+    if (cached !== undefined) return { filePath, code: cached }
+    const result = normalizePreprocess(await preprocess(code, filePath))
     return {
       filePath,
-      code: preprocess === undefined ? code : await preprocess(code, filePath),
+      code: result.code,
+      raw: { code, dependencies: result.dependencies },
     }
   }
 
@@ -236,14 +258,14 @@ export function createAtomicPluginState(
     for await (const match of matches) filePaths.push(path.resolve(root, match))
     filePaths.sort((left, right) => left.localeCompare(right))
     cache.retain(filePaths)
-    const misses: SourceFile[] = []
+    const misses: PreparedFile[] = []
     await Promise.all(
       filePaths.map(async (filePath) => {
         if (!canScanFromDisk(filePath)) return
         try {
           const code = await fs.readFile(filePath, 'utf8')
           const source = await prepareSource(filePath, code)
-          if (cache.reuse(source) === 'miss') misses.push(source)
+          if (cache.reuse(source, source.raw) === 'miss') misses.push(source)
         } catch (error) {
           if (isEnoent(error)) return
           if (strict || isOverrideConflictError(error)) throw error
@@ -253,7 +275,10 @@ export function createAtomicPluginState(
     )
     let pooled: Awaited<ReturnType<typeof scanFilesInPool>>
     try {
-      pooled = await scanFilesInPool(misses, cache.scanSettings())
+      pooled = await scanFilesInPool(
+        misses.map((file) => ({ filePath: file.filePath, code: file.code })),
+        cache.scanSettings()
+      )
     } catch (error) {
       if (strict || isOverrideConflictError(error)) throw error
       pooled = undefined
@@ -263,13 +288,19 @@ export function createAtomicPluginState(
       for (const result of pooled) {
         const source = misses.find((file) => file.filePath === result.filePath)
         if (!source) continue
-        cache.remember(source, result.scan, new Map(result.atoms), result.skips)
+        cache.remember(
+          source,
+          result.scan,
+          new Map(result.atoms),
+          result.skips,
+          source.raw
+        )
       }
     }
     for (const source of misses) {
       if (scanned.has(source.filePath)) continue
       try {
-        cache.update(source)
+        cache.update(source, source.raw)
       } catch (error) {
         if (strict || isOverrideConflictError(error)) throw error
         fail(source.filePath, error)
@@ -290,7 +321,9 @@ export function createAtomicPluginState(
     }
 
     const reads = await Promise.all(
-      [...modified].map(async (filePath) => readIfCss(filePath))
+      [...modified, ...modulesImporting(modified)].map(async (filePath) =>
+        readIfCss(filePath)
+      )
     )
     const imported = await cssModulesImportedBy(modified, reads)
     for (const file of [...reads, ...imported]) {
@@ -302,9 +335,8 @@ export function createAtomicPluginState(
         continue
       }
       try {
-        if (cache.update(await prepareSource(file.filePath, file.code))) {
-          dirty = true
-        }
+        const prepared = await prepareSource(file.filePath, file.code)
+        if (cache.update(prepared, prepared.raw)) dirty = true
       } catch (error) {
         if (strict || isOverrideConflictError(error)) throw error
         fail(file.filePath, error)
@@ -315,6 +347,12 @@ export function createAtomicPluginState(
     if (!dirty) return false
     publishSnapshot()
     return true
+  }
+
+  function modulesImporting(modified: ReadonlySet<string>): string[] {
+    return cache
+      .dependentFiles(modified)
+      .filter((filePath) => !modified.has(filePath))
   }
 
   async function readIfCss(
@@ -367,7 +405,8 @@ export function createAtomicPluginState(
     try {
       if (!canScanFromDisk(filePath)) return
       const code = await fs.readFile(filePath, 'utf8')
-      cache.update(await prepareSource(filePath, code))
+      const prepared = await prepareSource(filePath, code)
+      cache.update(prepared, prepared.raw)
     } catch (error) {
       if (isEnoent(error)) {
         cache.remove(filePath)
@@ -387,13 +426,13 @@ export function createAtomicPluginState(
   ): Promise<RewrittenModule | null> {
     if (!isMatchingCssModule(filePath)) return null
 
-    let source: SourceFile
+    let source: PreparedFile
     try {
       source =
         compiled || preprocess === undefined
           ? { filePath, code }
           : await prepareSource(filePath, code)
-      if (cache.update(source)) publishSnapshot()
+      if (cache.update(source, source.raw)) publishSnapshot()
     } catch (error) {
       if (strict || isOverrideConflictError(error)) throw error
       fail(filePath, error)
@@ -535,6 +574,14 @@ function sharedCache(
   const created = new FileScanCache(options)
   sharedCaches.set(key, created)
   return created
+}
+
+function normalizePreprocess(value: string | PreprocessResult): {
+  code: string
+  dependencies: readonly string[]
+} {
+  if (typeof value === 'string') return { code: value, dependencies: [] }
+  return { code: value.code, dependencies: value.dependencies ?? [] }
 }
 
 function policyKey(options: AtomicCssModulesPluginOptions): string {

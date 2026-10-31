@@ -63,7 +63,7 @@ CommonJS configs can `require('@zslabs/atomic-css-modules/webpack')`. The same `
 
 On Rspack, use `rspack.CssExtractRspackPlugin` with the same rule, or native CSS with the standard `{ test: /\.css$/, type: 'css/auto' }` rule and `experiments.css: true`.
 
-`.module.less`, `.module.scss`, `.module.sass`, and `.module.styl` work when the bundler already compiles them. Set `include` to those globs. The plugin inserts its rewrite loader immediately before `less-loader`, `sass-loader`, or `stylus-loader`, so it sees compiled CSS. A `preprocess` function is only needed when you want the startup scan to see that same compiled CSS. It may be async, and it has to reproduce the bundler's aliases, global variables, and plugins.
+`.module.less`, `.module.scss`, `.module.sass`, and `.module.styl` work when the bundler already compiles them. Set `include` to those globs. The plugin inserts its rewrite loader immediately before `less-loader`, `sass-loader`, or `stylus-loader`, so it sees compiled CSS. A `preprocess` function is only needed when you want the startup scan to see that same compiled CSS. It may be async, and it has to reproduce the bundler's aliases, global variables, and plugins. Return `{ code, dependencies }` when that compilation reads other files. A warm start skips `preprocess` until the source or one of those files changes.
 
 Keep `css-loader`'s default `modules.auto` (or any setting that only scopes `*.module.css` and the other module suffixes you include). The shared registry is a plain `.css` file shipped with the package and must stay global. Each compilation gets a registry built from the modules it actually uses. Two apps in one repo that share no modules get disjoint registries. Entries in one compilation still share a registry.
 
@@ -98,19 +98,19 @@ body {
 
 ### Options
 
-| Option            | Default                         | Notes                                                                                         |
-| ----------------- | ------------------------------- | --------------------------------------------------------------------------------------------- |
-| `include`         | `**/*.module.css`               | Globs relative to the Vite root, webpack context, or PostCSS cwd. Example: `**/*.module.less` |
-| `exclude`         | `**/node_modules/**`            |                                                                                               |
-| `debugNames`      | `true` in dev, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes                                           |
-| `report`          | `"summary"`                     | `"verbose"` lists each skipped selector. The summary also lists per-file failures             |
-| `preprocess`      |                                 | `(code, filePath) => string \| Promise<string>` before scan/atomize. Must match the bundler   |
-| `conflicts`       | `"skip"`                        | `"error"` fails the build. `"allow"` keeps both atoms and lets registry order decide          |
-| `minOccurrences`  | `2`                             | Declarations used by fewer local classes stay in the module                                   |
-| `localIdents`     | keyframes and counter-styles    | `container` and `dashedIdents` also keep those names local. Off unless you set them           |
-| `customAtRules`   |                                 | Passed through to lightningcss                                                                |
-| `strict`          | `false`                         | One broken file stays as authored and is listed on the report. `true` fails the build         |
-| `groupConditions` | `false`                         | Merge adjacent registry atoms that already share an at-rule condition. Does not reorder       |
+| Option            | Default                         | Notes                                                                                                                         |
+| ----------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `include`         | `**/*.module.css`               | Globs relative to the Vite root, webpack context, or PostCSS cwd. Example: `**/*.module.less`                                 |
+| `exclude`         | `**/node_modules/**`            |                                                                                                                               |
+| `debugNames`      | `true` in dev, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes                                                                           |
+| `report`          | `"summary"`                     | `"verbose"` lists each skipped selector. The summary also lists per-file failures                                             |
+| `preprocess`      |                                 | `(code, filePath) => string` or `{ code, dependencies }`. Warm start skips it when the source and those imports are unchanged |
+| `conflicts`       | `"skip"`                        | `"error"` fails the build. `"allow"` keeps both atoms and lets registry order decide                                          |
+| `minOccurrences`  | `2`                             | Declarations used by fewer local classes stay in the module                                                                   |
+| `localIdents`     | keyframes and counter-styles    | `container` and `dashedIdents` also keep those names local. Off unless you set them                                           |
+| `customAtRules`   |                                 | At-rules with a body are passed to lightningcss. Statement at-rules stay unknown so their semicolons survive                  |
+| `strict`          | `false`                         | One broken file stays as authored and is listed on the report. `true` fails the build                                         |
+| `groupConditions` | `false`                         | Merge adjacent registry atoms that already share an at-rule condition. Does not reorder                                       |
 
 "Dev" means `vite serve`, webpack/Rspack in `development` mode, or `next dev`. Production watch keeps the short hashes.
 

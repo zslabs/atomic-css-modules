@@ -24,7 +24,10 @@ import {
 } from './webpack/paths.js'
 import { registerState, type LoaderOptions } from './webpack/state-registry.js'
 
-export type { AtomicCssModulesPluginOptions } from './plugin-state.js'
+export type {
+  AtomicCssModulesPluginOptions,
+  PreprocessResult,
+} from './plugin-state.js'
 export { REGISTRY_STUB_PATH } from './webpack/paths.js'
 
 interface AsyncHook {
@@ -309,6 +312,7 @@ interface LooseRule {
 interface LoaderUse {
   loader: string
   options?: unknown
+  [field: string]: unknown
 }
 
 function splicePreprocessorRewrite(
@@ -369,18 +373,16 @@ function toUseList(use: unknown): LoaderUse[] | undefined {
     }
     return entries
   }
-  if (typeof use === 'object' && use !== null && 'loader' in use) {
-    if (typeof use.loader !== 'string') return
-    return [
-      {
-        loader: use.loader,
-        ...('options' in use && use.options !== undefined
-          ? { options: use.options }
-          : {}),
-      },
-    ]
+  if (typeof use === 'object' && use !== null && isLoaderEntry(use)) {
+    return [{ ...use, loader: use.loader }]
   }
   return
+}
+
+function isLoaderEntry(
+  value: object
+): value is Record<string, unknown> & { loader: string } {
+  return 'loader' in value && typeof value.loader === 'string'
 }
 
 function lastPreprocessor(use: readonly LoaderUse[]): number {

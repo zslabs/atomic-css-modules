@@ -3,7 +3,7 @@
  * instead of re-parsing every CSS module on each HMR or transform.
  */
 import { createHash } from 'node:crypto'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { ensureUniqueAtomNames, syncScanAtomHashes } from './atoms.js'
 import {
@@ -39,12 +39,28 @@ export interface FileScanCacheOptions {
   policyKey?: string
 }
 
+interface RawInput {
+  code: string
+  dependencies?: readonly string[]
+}
+
+interface DependencyStamp {
+  filePath: string
+  contentHash: string
+}
+
+interface RawStamp {
+  rawHash: string
+  dependencies: DependencyStamp[]
+}
+
 interface DiskPayload {
   contentHash: string
   code: string
   scan: ScanFileResult
   atoms: [string, Atom][]
   skips: AtomizationSkip[]
+  raw?: RawStamp
 }
 
 interface CachedFile {
@@ -53,6 +69,7 @@ interface CachedFile {
   scan: ScanFileResult
   atoms: Map<string, Atom>
   skips: AtomizationSkip[]
+  raw?: RawStamp
 }
 
 /** 64-bit DJB2-pair string hash so content collisions are vanishingly rare. */
@@ -112,10 +129,21 @@ export class FileScanCache {
     return this.diskHits.has(filePath)
   }
 
+  /** CSS files whose recorded imports include one of `changed`. */
+  dependentFiles(changed: ReadonlySet<string>): string[] {
+    if (changed.size === 0) return []
+    const hits: string[] = []
+    for (const [filePath, entry] of this.entries) {
+      const deps = entry.raw?.dependencies
+      if (!deps?.some((dep) => changed.has(dep.filePath))) continue
+      hits.push(filePath)
+    }
+    return hits
+  }
+
   /** True when the file was scanned. False when the cached scan was reused. */
-  update(file: SourceFile): boolean {
-    const hash = contentHash(file.code)
-    const reused = this.reuse(file, hash)
+  update(file: SourceFile, raw?: RawInput): boolean {
+    const reused = this.reuse(file, raw)
     if (reused === 'memory') return false
     if (reused === 'disk') return true
 
@@ -123,8 +151,9 @@ export class FileScanCache {
     const scan = scanned.files[0]
     if (!scan) throw new Error(`scan produced no result for ${file.filePath}`)
     this.put({
-      contentHash: hash,
+      contentHash: contentHash(file.code),
       code: file.code,
+      raw: stampRaw(file.filePath, raw),
       scan,
       atoms: scanned.atoms,
       skips: scanned.skips,
@@ -132,17 +161,36 @@ export class FileScanCache {
     return true
   }
 
+  /**
+   * Compiled code when `rawCode` and the imports recorded last time are
+   * unchanged. A hit means the caller can skip preprocess.
+   */
+  reuseRaw(filePath: string, rawCode: string): string | undefined {
+    const rawHash = contentHash(rawCode)
+    const existing = this.entries.get(filePath)
+    if (existing) return freshRaw(existing, rawHash)
+    const loaded = this.loadDisk(filePath)
+    if (!loaded) return
+    const code = freshRaw(loaded, rawHash)
+    if (code === undefined) return
+    this.entries.set(filePath, loaded)
+    this.diskHits.add(filePath)
+    return code
+  }
+
   /** `'miss'` when the caller should scan `file`. */
-  reuse(
-    file: SourceFile,
-    hash = contentHash(file.code)
-  ): 'memory' | 'disk' | 'miss' {
+  reuse(file: SourceFile, raw?: RawInput): 'memory' | 'disk' | 'miss' {
+    const hash = contentHash(file.code)
     const existing = this.entries.get(file.filePath)
-    if (existing && existing.contentHash === hash) return 'memory'
+    if (existing && existing.contentHash === hash) {
+      this.attachRaw(file.filePath, raw)
+      return 'memory'
+    }
     const fromDisk = this.readDisk(file.filePath, hash)
     if (!fromDisk) return 'miss'
     this.entries.set(file.filePath, fromDisk)
     this.diskHits.add(file.filePath)
+    this.attachRaw(file.filePath, raw)
     return 'disk'
   }
 
@@ -150,18 +198,33 @@ export class FileScanCache {
     file: SourceFile,
     scan: ScanFileResult,
     atoms: Map<string, Atom>,
-    skips: AtomizationSkip[]
+    skips: AtomizationSkip[],
+    raw?: RawInput
   ): void {
     this.put({
       contentHash: contentHash(file.code),
       code: file.code,
+      raw: stampRaw(file.filePath, raw),
       scan,
       atoms,
       skips,
     })
   }
 
+  private attachRaw(filePath: string, raw: RawInput | undefined): void {
+    const stamp = stampRaw(filePath, raw)
+    if (!stamp) return
+    const existing = this.entries.get(filePath)
+    if (!existing || sameRaw(existing.raw, stamp)) return
+    existing.raw = stamp
+    this.writeDisk(existing)
+  }
+
   private put(cached: CachedFile): void {
+    if (!cached.raw) {
+      const previous = this.entries.get(cached.scan.filePath)
+      if (previous?.raw) cached.raw = previous.raw
+    }
     this.entries.set(cached.scan.filePath, cached)
     this.writeDisk(cached)
   }
@@ -332,7 +395,7 @@ export class FileScanCache {
     }
   }
 
-  private diskFile(filePath: string, hash: string): string | undefined {
+  private diskFile(filePath: string): string | undefined {
     if (!this.options.cacheDir || !this.options.policyKey) return
     const name = createHash('sha256')
       .update(this.options.policyKey)
@@ -340,24 +403,29 @@ export class FileScanCache {
       .update(this.debugNames ? '1' : '0')
       .update('\0')
       .update(filePath)
-      .update('\0')
-      .update(hash)
       .digest('hex')
     return path.join(this.options.cacheDir, `${name}.json`)
   }
 
   private readDisk(filePath: string, hash: string): CachedFile | undefined {
-    const diskFile = this.diskFile(filePath, hash)
+    const loaded = this.loadDisk(filePath)
+    if (!loaded || loaded.contentHash !== hash) return
+    return loaded
+  }
+
+  private loadDisk(filePath: string): CachedFile | undefined {
+    const diskFile = this.diskFile(filePath)
     if (!diskFile) return
     try {
       const parsed: unknown = JSON.parse(readFileSync(diskFile, 'utf8'))
-      if (!isDiskPayload(parsed) || parsed.contentHash !== hash) return
+      if (!isDiskPayload(parsed)) return
       return {
         contentHash: parsed.contentHash,
         code: parsed.code,
         scan: parsed.scan,
         atoms: new Map(parsed.atoms),
         skips: parsed.skips,
+        ...(parsed.raw ? { raw: parsed.raw } : {}),
       }
     } catch {
       return
@@ -365,7 +433,7 @@ export class FileScanCache {
   }
 
   private writeDisk(cached: CachedFile): void {
-    const diskFile = this.diskFile(cached.scan.filePath, cached.contentHash)
+    const diskFile = this.diskFile(cached.scan.filePath)
     if (!diskFile || !this.options.cacheDir) return
     const payload: DiskPayload = {
       contentHash: cached.contentHash,
@@ -373,6 +441,7 @@ export class FileScanCache {
       scan: cached.scan,
       atoms: [...cached.atoms],
       skips: cached.skips,
+      ...(cached.raw ? { raw: cached.raw } : {}),
     }
     try {
       mkdirSync(this.options.cacheDir, { recursive: true })
@@ -381,6 +450,99 @@ export class FileScanCache {
       return
     }
   }
+}
+
+const MISSING_DEPENDENCY = 'missing'
+
+function stampRaw(
+  filePath: string,
+  raw: RawInput | undefined
+): RawStamp | undefined {
+  if (!raw) return
+  return {
+    rawHash: contentHash(raw.code),
+    dependencies: stampDependencies(filePath, raw.dependencies ?? []),
+  }
+}
+
+function stampDependencies(
+  fromFile: string,
+  dependencies: readonly string[]
+): DependencyStamp[] {
+  const stamps = new Map<string, string>()
+  for (const dep of dependencies) {
+    const filePath = resolveDependency(fromFile, dep)
+    stamps.set(filePath, hashFile(filePath))
+  }
+  return [...stamps]
+    .map(([filePath, hashed]) => ({ filePath, contentHash: hashed }))
+    .sort((left, right) => left.filePath.localeCompare(right.filePath))
+}
+
+function resolveDependency(fromFile: string, dep: string): string {
+  const resolved = path.isAbsolute(dep)
+    ? dep
+    : path.resolve(path.dirname(fromFile), dep)
+  try {
+    return realpathSync(resolved)
+  } catch {
+    return resolved
+  }
+}
+
+function hashFile(filePath: string): string {
+  try {
+    return contentHash(readFileSync(filePath, 'utf8'))
+  } catch {
+    return MISSING_DEPENDENCY
+  }
+}
+
+function dependenciesMatch(dependencies: readonly DependencyStamp[]): boolean {
+  for (const dep of dependencies) {
+    const hashed = hashFile(dep.filePath)
+    if (hashed !== dep.contentHash) return false
+  }
+  return true
+}
+
+function freshRaw(cached: CachedFile, rawHash: string): string | undefined {
+  if (!cached.raw || cached.raw.rawHash !== rawHash) return
+  if (!dependenciesMatch(cached.raw.dependencies)) return
+  return cached.code
+}
+
+function sameRaw(left: RawStamp | undefined, right: RawStamp): boolean {
+  if (!left || left.rawHash !== right.rawHash) return false
+  if (left.dependencies.length !== right.dependencies.length) return false
+  for (const [index, dep] of left.dependencies.entries()) {
+    const other = right.dependencies[index]
+    if (!other) return false
+    if (
+      dep.filePath !== other.filePath ||
+      dep.contentHash !== other.contentHash
+    ) {
+      return false
+    }
+  }
+  return true
+}
+
+function isRawStamp(value: unknown): value is RawStamp {
+  if (typeof value !== 'object' || value === null) return false
+  if (!('rawHash' in value) || typeof value.rawHash !== 'string') return false
+  if (!('dependencies' in value) || !Array.isArray(value.dependencies)) {
+    return false
+  }
+  return value.dependencies.every(
+    (dep) =>
+      typeof dep === 'object' &&
+      dep !== null &&
+      'filePath' in dep &&
+      typeof dep.filePath === 'string' &&
+      'contentHash' in dep &&
+      typeof dep.contentHash === 'string'
+  )
 }
 
 function isDiskPayload(value: unknown): value is DiskPayload {
@@ -398,7 +560,8 @@ function isDiskPayload(value: unknown): value is DiskPayload {
   }
   if (!('atoms' in value) || !Array.isArray(value.atoms)) return false
   if (!('skips' in value) || !Array.isArray(value.skips)) return false
-  return true
+  if (!('raw' in value) || value.raw === undefined) return true
+  return isRawStamp(value.raw)
 }
 
 function joinedHashes(scan: ScanFileResult): string {

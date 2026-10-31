@@ -15,7 +15,10 @@ import {
   type AtomicCssModulesPluginOptions,
 } from './plugin-state.js'
 
-export type { AtomicCssModulesPluginOptions } from './plugin-state.js'
+export type {
+  AtomicCssModulesPluginOptions,
+  PreprocessResult,
+} from './plugin-state.js'
 
 export const ATOMIC_REGISTRY_ID = 'virtual:atomic-registry.css'
 export const RESOLVED_ATOMIC_REGISTRY_ID = `\0${ATOMIC_REGISTRY_ID}`
