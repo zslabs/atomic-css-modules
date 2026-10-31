@@ -8,6 +8,7 @@
  * `*.module.css`, css-loader treats it as global CSS, so atom class names
  * stay unscoped.
  */
+import { createHash } from 'node:crypto'
 import { realpath } from 'node:fs/promises'
 import {
   createAtomicPluginState,
@@ -21,9 +22,12 @@ import {
   REGISTRY_STUB_PATH,
   REWRITE_LOADER_PATH,
 } from './webpack/paths.js'
-import { registerState } from './webpack/state-registry.js'
+import { registerState, type LoaderOptions } from './webpack/state-registry.js'
 
-export type { AtomicCssModulesPluginOptions } from './plugin-state.js'
+export type {
+  AtomicCssModulesPluginOptions,
+  PreprocessResult,
+} from './plugin-state.js'
 export { REGISTRY_STUB_PATH } from './webpack/paths.js'
 
 interface AsyncHook {
@@ -43,6 +47,7 @@ export interface CompilerLike {
   options: {
     mode?: string
     devtool?: false | string
+    entry?: unknown
     module: { rules: unknown[] }
   }
   hooks: {
@@ -53,6 +58,9 @@ export interface CompilerLike {
         name: string,
         fn: (compilation: unknown) => Promise<void>
       ): void
+    }
+    thisCompilation?: {
+      tap(name: string, fn: (compilation: unknown) => void): void
     }
   }
   getInfrastructureLogger(name: string): { info(message: string): void }
@@ -69,18 +77,31 @@ export class AtomicCssModulesWebpackPlugin {
     this.state = createAtomicPluginState(options)
   }
 
+  /** Package version plus a hash of the atomization options. Use it as `cache.version`. */
+  get cacheVersion(): string {
+    return this.state.cacheVersion
+  }
+
   apply(compiler: CompilerLike): void {
     const state = this.state
-    const loaderOptions = registerState(state)
-    loaderOptions.cacheRegistry = !('rspack' in compiler)
+    const debugNames =
+      this.options.debugNames ?? compiler.options.mode === 'development'
+    const loaderOptions = registerState(
+      state,
+      stableStateId(compiler, state.cacheVersion)
+    )
+    loaderOptions.cacheVersion = `${state.cacheVersion}:${debugNames ? 'debug' : 'prod'}`
     let reported = false
     let ready = false
     let rebuilding = false
 
+    splicePreprocessorRewrite(compiler.options.module.rules, loaderOptions)
     compiler.options.module.rules.push(
       {
         enforce: 'pre',
-        test: (filePath: string) => state.isMatchingCssModule(filePath),
+        test: (filePath: string) =>
+          state.isMatchingCssModule(filePath) &&
+          !isPreprocessorSource(filePath),
         use: [{ loader: REWRITE_LOADER_PATH, options: loaderOptions }],
       },
       {
@@ -92,11 +113,12 @@ export class AtomicCssModulesWebpackPlugin {
         enforce: 'pre',
         test: isJsModule,
         exclude: /node_modules/,
-        use: [{ loader: INJECT_LOADER_PATH }],
+        use: [{ loader: INJECT_LOADER_PATH, options: loaderOptions }],
       }
     )
 
     const sync = async (): Promise<void> => {
+      state.clearLoaderRegistry()
       const cacheCleared = state.configure({
         // Resolved module paths are realpaths; a symlinked context would not match.
         root: await realpath(compiler.context),
@@ -125,25 +147,284 @@ export class AtomicCssModulesWebpackPlugin {
       }
     }
 
+    tapAssetSync(compiler, state)
     compiler.hooks.beforeRun.tapPromise(PLUGIN_NAME, sync)
     compiler.hooks.watchRun.tapPromise(PLUGIN_NAME, sync)
     compiler.hooks.finishMake.tapPromise(PLUGIN_NAME, async (compilation) => {
       if (rebuilding || !isCompilation(compilation)) return
+      const paths = compilationModulePaths(compilation)
+      if (paths.length > 0) state.useCompilationFiles(paths)
       if (state.emittedRegistryHash() === state.registryHash) return
       const patched = patchRegistryCss(compilation, state.registryCss)
-      const nativeModules = nativeRegistryModules(compilation)
-      if (!patched && nativeModules.length === 0) return
+      const registryModules = modulesForRegistry(compilation)
+      if (!patched && registryModules.length === 0) return
       rebuilding = true
       try {
         // Record the hash before rebuilding. A native rebuild re-enters this
         // hook from the loader, and the content patch does not.
         state.noteEmittedRegistryHash(state.registryHash)
-        await Promise.all(nativeModules.map((mod) => rebuild(compilation, mod)))
+        await Promise.all(
+          registryModules.map((mod) => rebuild(compilation, mod))
+        )
       } finally {
         rebuilding = false
       }
     })
   }
+}
+
+interface CssAsset {
+  name: string
+  source: { source(): string | Buffer }
+}
+
+interface AssetCompilation {
+  getAssets(): CssAsset[]
+  updateAsset(name: string, source: { source(): string; size(): number }): void
+  hooks: {
+    processAssets: {
+      tap(options: { name: string; stage: number }, fn: () => void): void
+    }
+  }
+}
+
+function tapAssetSync(compiler: CompilerLike, state: AtomicPluginState): void {
+  const hook = compiler.hooks.thisCompilation
+  if (!hook) return
+  hook.tap(PLUGIN_NAME, (compilation) => {
+    if (!isAssetCompilation(compilation)) return
+    compilation.hooks.processAssets.tap({ name: PLUGIN_NAME, stage: 0 }, () => {
+      reconcileRegistryAssets(compilation, state)
+    })
+  })
+}
+
+function isAssetCompilation(value: unknown): value is AssetCompilation {
+  if (typeof value !== 'object' || value === null) return false
+  if (!('getAssets' in value) || typeof value.getAssets !== 'function') {
+    return false
+  }
+  if (!('updateAsset' in value) || typeof value.updateAsset !== 'function') {
+    return false
+  }
+  if (
+    !('hooks' in value) ||
+    typeof value.hooks !== 'object' ||
+    value.hooks === null
+  ) {
+    return false
+  }
+  return (
+    'processAssets' in value.hooks &&
+    typeof value.hooks.processAssets === 'object' &&
+    value.hooks.processAssets !== null &&
+    'tap' in value.hooks.processAssets &&
+    typeof value.hooks.processAssets.tap === 'function'
+  )
+}
+
+function reconcileRegistryAssets(
+  compilation: AssetCompilation,
+  state: AtomicPluginState
+): void {
+  const captured = state.loaderRegistry()
+  const current = state.registryCss
+  if (captured === undefined || captured === current) return
+  const remove = classSelectors(captured)
+  for (const name of classSelectors(current)) remove.delete(name)
+  for (const asset of compilation.getAssets()) {
+    if (!asset.name.endsWith('.css')) continue
+    const original = sourceText(asset.source.source())
+    let next = stripClassRules(original, remove)
+    if (!includesRegistry(next, current)) next = `${current}\n${next}`
+    if (next === original) continue
+    compilation.updateAsset(asset.name, {
+      source: () => next,
+      size: () => Buffer.byteLength(next),
+    })
+  }
+}
+
+function sourceText(source: string | Buffer): string {
+  return typeof source === 'string' ? source : source.toString('utf8')
+}
+
+function classSelectors(css: string): Set<string> {
+  const names = new Set<string>()
+  for (const match of css.matchAll(/\.([A-Za-z0-9_-]+)\s*\{/g)) {
+    const name = match[1]
+    if (name) names.add(name)
+  }
+  return names
+}
+
+function includesRegistry(asset: string, registry: string): boolean {
+  for (const name of classSelectors(registry)) {
+    if (!asset.includes(`.${name}`)) return false
+  }
+  return true
+}
+
+function stripClassRules(css: string, names: ReadonlySet<string>): string {
+  let next = css
+  for (const name of names) {
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    next = next.replace(
+      new RegExp(`\\.${escaped}\\s*\\{[^{}]*\\}\\n?`, 'g'),
+      ''
+    )
+  }
+  return next
+}
+
+function stableStateId(compiler: CompilerLike, version: string): string {
+  let entry = ''
+  try {
+    entry = JSON.stringify(compiler.options.entry) ?? ''
+  } catch {
+    entry = ''
+  }
+  return createHash('sha256')
+    .update(compiler.context)
+    .update('\0')
+    .update(entry)
+    .update('\0')
+    .update(version)
+    .digest('hex')
+    .slice(0, 16)
+}
+
+const PREPROCESSOR_LOADER =
+  /(?:^|[\\/])(?:less-loader|sass-loader|stylus-loader)(?:[\\/]|$)/
+
+function isPreprocessorSource(filePath: string): boolean {
+  return /\.(?:less|scss|sass|styl)$/i.test(filePath)
+}
+
+interface LooseRule {
+  oneOf?: unknown
+  rules?: unknown
+  use?: unknown
+  loader?: unknown
+  options?: unknown
+}
+
+interface LoaderUse {
+  loader: string
+  options?: unknown
+  [field: string]: unknown
+}
+
+function splicePreprocessorRewrite(
+  rules: unknown[],
+  loaderOptions: LoaderOptions
+): void {
+  for (const rule of rules) {
+    if (!isLooseRule(rule)) continue
+    if (Array.isArray(rule.oneOf)) {
+      splicePreprocessorRewrite(rule.oneOf, loaderOptions)
+    }
+    if (Array.isArray(rule.rules)) {
+      splicePreprocessorRewrite(rule.rules, loaderOptions)
+    }
+    const use = normalizeUse(rule)
+    if (!use) continue
+    const index = lastPreprocessor(use)
+    if (index < 0) continue
+    if (use.some((entry) => entry.loader === REWRITE_LOADER_PATH)) continue
+    use.splice(index, 0, {
+      loader: REWRITE_LOADER_PATH,
+      options: { ...loaderOptions, compiled: true },
+    })
+    rule.use = use
+    delete rule.loader
+    delete rule.options
+  }
+}
+
+function isLooseRule(value: unknown): value is LooseRule {
+  return typeof value === 'object' && value !== null
+}
+
+function normalizeUse(rule: LooseRule): LoaderUse[] | undefined {
+  if ('use' in rule && rule.use !== undefined) {
+    if (typeof rule.use === 'function') return
+    return toUseList(rule.use)
+  }
+  if (typeof rule.loader === 'string') {
+    return [
+      {
+        loader: rule.loader,
+        ...(rule.options !== undefined ? { options: rule.options } : {}),
+      },
+    ]
+  }
+  return
+}
+
+function toUseList(use: unknown): LoaderUse[] | undefined {
+  if (typeof use === 'string') return [{ loader: use }]
+  if (Array.isArray(use)) {
+    const entries: LoaderUse[] = []
+    for (const entry of use) {
+      const normalized = toUseList(entry)
+      if (!normalized) return
+      entries.push(...normalized)
+    }
+    return entries
+  }
+  if (typeof use === 'object' && use !== null && isLoaderEntry(use)) {
+    return [{ ...use, loader: use.loader }]
+  }
+  return
+}
+
+function isLoaderEntry(
+  value: object
+): value is Record<string, unknown> & { loader: string } {
+  return 'loader' in value && typeof value.loader === 'string'
+}
+
+function lastPreprocessor(use: readonly LoaderUse[]): number {
+  let found = -1
+  for (const [index, entry] of use.entries()) {
+    if (PREPROCESSOR_LOADER.test(entry.loader)) found = index
+  }
+  return found
+}
+
+function compilationModulePaths(compilation: CompilationLike): string[] {
+  const found = new Set<string>()
+  for (const mod of compilation.modules) {
+    if (typeof mod !== 'object' || mod === null) continue
+    for (const key of ['resource', 'userRequest', 'rawRequest'] as const) {
+      if (!(key in mod)) continue
+      const value: unknown = Reflect.get(mod, key)
+      if (typeof value === 'string') collectModulePaths(found, value)
+    }
+    const id = moduleIdentifier(mod)
+    if (id) collectModulePaths(found, id)
+  }
+  return [...found]
+}
+
+function collectModulePaths(found: Set<string>, value: string): void {
+  for (const match of value.matchAll(/\/[^\s|!?]+\.module\.[a-z0-9]+/gi)) {
+    const filePath = match[0]
+    if (filePath) found.add(filePath)
+  }
+}
+
+function modulesForRegistry(compilation: CompilationLike): unknown[] {
+  const modules: unknown[] = []
+  for (const mod of compilation.modules) {
+    const id = moduleIdentifier(mod)
+    if (!id) continue
+    if (id.includes(REGISTRY_STUB_PATH) || id.includes('registry.css')) {
+      modules.push(mod)
+    }
+  }
+  return modules
 }
 
 function isCompilation(value: unknown): value is CompilationLike {
@@ -181,17 +462,6 @@ function patchRegistryCss(compilation: CompilationLike, css: string): boolean {
     patched = true
   }
   return patched
-}
-
-function nativeRegistryModules(compilation: CompilationLike): unknown[] {
-  const modules: unknown[] = []
-  for (const mod of compilation.modules) {
-    const id = moduleIdentifier(mod)
-    if (id?.startsWith('css/auto|') && id.includes('registry.css')) {
-      modules.push(mod)
-    }
-  }
-  return modules
 }
 
 interface RegistryCssModule {

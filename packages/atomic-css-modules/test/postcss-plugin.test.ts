@@ -24,6 +24,7 @@ function createPlugin(root: string, debugNames = true) {
     include: ['**/*.module.css'],
     root,
     debugNames,
+    minOccurrences: 1,
   })
 }
 

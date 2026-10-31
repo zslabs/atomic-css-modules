@@ -15,7 +15,10 @@ import {
   type AtomicCssModulesPluginOptions,
 } from './plugin-state.js'
 
-export type { AtomicCssModulesPluginOptions } from './plugin-state.js'
+export type {
+  AtomicCssModulesPluginOptions,
+  PreprocessResult,
+} from './plugin-state.js'
 
 export const ATOMIC_REGISTRY_ID = 'virtual:atomic-registry.css'
 export const RESOLVED_ATOMIC_REGISTRY_ID = `\0${ATOMIC_REGISTRY_ID}`
@@ -185,9 +188,16 @@ export function atomicCssModules(
       }
       return [...options.modules, ...extra]
     },
-    transform(code, id) {
+    async transform(code, id) {
       const [cleanId = id] = id.split('?')
-      if (needsRegistryImport(cleanId, code, ATOMIC_REGISTRY_ID)) {
+      if (
+        needsRegistryImport(
+          cleanId,
+          code,
+          ATOMIC_REGISTRY_ID,
+          state.moduleSuffixes
+        )
+      ) {
         return { code: prependRegistryImport(code, ATOMIC_REGISTRY_ID) }
       }
       return state.rewriteCssModule(cleanId, code)

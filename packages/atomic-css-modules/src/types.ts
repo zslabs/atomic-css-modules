@@ -6,6 +6,7 @@ import type {
   Declaration,
   MediaList,
   MediaQuery,
+  Rule,
   Selector,
   SelectorComponent,
   SelectorList,
@@ -81,6 +82,8 @@ export interface RewrittenFile {
   changed: boolean
   /** JSON source map when {@link ProcessOptions.sourceMap} is enabled. */
   map?: string
+  /** Set when rewrite failed and {@link ProcessOptions.strict} is off. */
+  failure?: string
 }
 
 export const SKIP_REASONS = [
@@ -92,6 +95,9 @@ export const SKIP_REASONS = [
   'chained-pseudo',
   'shorthand-conflict',
   'skip-comment',
+  'override-conflict',
+  'local-reference',
+  'unknown-at-rule',
 ] as const
 
 export type SkipReason = (typeof SKIP_REASONS)[number]
@@ -103,6 +109,12 @@ export interface AtomizationSkip {
   reason: SkipReason
 }
 
+/** A file left unchanged because scan or rewrite threw. */
+export interface AtomizationFailure {
+  filePath: string
+  message: string
+}
+
 /** Counts from one scan + registry pass. */
 export interface AtomizationReport {
   files: number
@@ -110,7 +122,15 @@ export interface AtomizationReport {
   skippedRules: number
   bytesIn: number
   registryBytes: number
+  /**
+   * Printed bytes of hoisted declarations, minus composed class names,
+   * minus the registry.
+   */
+  cssBytesSaved: number
+  /** Bytes added to class maps by composed atom class names. */
+  classNameBytesAdded: number
   skips: AtomizationSkip[]
+  failures: AtomizationFailure[]
 }
 
 /** Result of the full scan + rewrite pipeline. */
@@ -138,6 +158,48 @@ export interface ProcessOptions {
   sourceMap?: boolean
   /** When true, atom class names use a readable slug plus a short key hash (`color-red-a1b2c3`) instead of production hashes. */
   debugNames?: boolean
+  /**
+   * What to do when two classes in one file set the same property (or an
+   * overlapping shorthand) to different values. `"skip"` leaves those
+   * declarations on the local classes. `"error"` throws. `"allow"` atomizes
+   * them and lets registry order decide the winner.
+   * Cross-file conflicts cannot be detected.
+   */
+  conflicts?: ConflictMode
+  /**
+   * Declarations used by fewer distinct classes stay on the local class.
+   * Defaults to 2.
+   */
+  minOccurrences?: number
+  /** Extra names CSS Modules may rename. Keyframes and counter-styles are always local. */
+  localIdents?: LocalIdentOptions
+  /**
+   * Custom at-rules with a body are passed through to lightningcss.
+   * Statement at-rules are left unknown so the printer keeps their semicolons.
+   */
+  customAtRules?: AtomicCustomAtRules
+  /** When true, a scan or rewrite exception fails the build instead of keeping the original file. */
+  strict?: boolean
+  /** Merge adjacent atoms that share an at-rule condition. Off by default. */
+  groupConditions?: boolean
+}
+
+export type ConflictMode = 'skip' | 'error' | 'allow'
+
+export interface LocalIdentOptions {
+  /** Keep declarations that define or query a container name from this file. */
+  container?: boolean
+  /** Keep custom properties defined in this file, and declarations that reference them. */
+  dashedIdents?: boolean
+}
+
+export interface AtomicCustomAtRule {
+  prelude?: string | null
+  body?: 'declaration-list' | 'rule-list' | 'style-block' | null
+}
+
+export interface AtomicCustomAtRules {
+  [name: string]: AtomicCustomAtRule
 }
 
 /** Per-declaration decision recorded during scan for plan-driven rewrite. */
@@ -172,6 +234,10 @@ export interface ScanRuleInfo {
 export interface ScanFileResult {
   filePath: string
   rules: ScanRuleInfo[]
+  /** `@custom-media`, `@property`, and `@layer` order rules this file depends on. */
+  definitions: Rule[]
+  /** Set when this file could not be scanned and should be left unchanged. */
+  failure?: string
 }
 
 export interface ScanResult {

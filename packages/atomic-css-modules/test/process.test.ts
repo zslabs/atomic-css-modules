@@ -1,4 +1,9 @@
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { transform } from 'lightningcss'
+import { OverrideConflictError } from '../src/override-conflicts.js'
 import { processCssModules } from '../src/process.js'
 import { formatAtomizationReport } from '../src/report.js'
 
@@ -7,7 +12,7 @@ const registryImportPath = './atomic-registry.css'
 function run(code: string) {
   const result = processCssModules(
     [{ filePath: 'component.module.css', code }],
-    { registryImportPath }
+    { registryImportPath, minOccurrences: 1 }
   )
   const file = result.files[0]
   if (!file) throw new Error('expected one rewritten file')
@@ -33,10 +38,15 @@ describe('atomization report', () => {
         { filePath: 'kept.module.css', code: kept },
         { filePath: 'skip.module.css', code: skipped },
       ],
-      { registryImportPath }
+      { registryImportPath, minOccurrences: 1 }
     )
 
-    expect(result.report).toEqual({
+    const { cssBytesSaved, classNameBytesAdded, failures, ...report } =
+      result.report
+    expect(failures).toEqual([])
+    expect(cssBytesSaved).toBeTypeOf('number')
+    expect(classNameBytesAdded).toBeTypeOf('number')
+    expect(report).toEqual({
       files: 2,
       atoms: 1,
       skippedRules: 1,
@@ -70,7 +80,7 @@ describe('atomization report', () => {
           code: '.a { margin: 0; margin-left: 4px; }\n',
         },
       ],
-      { registryImportPath }
+      { registryImportPath, minOccurrences: 1 }
     )
 
     expect(result.report.skips).toEqual([
@@ -119,11 +129,11 @@ describe('atomization report', () => {
         { filePath: 'combo.module.css', code: '.a .b { color: red; }\n' },
         { filePath: 'mixed.module.css', code: '.a, div { color: red; }\n' },
       ],
-      { registryImportPath }
+      { registryImportPath, minOccurrences: 1 }
     )
     expect(formatAtomizationReport(result.report)).toBe(
       [
-        `atomic-css-modules: 0 atoms, 2 skipped rules (1 combinator, 1 mixed-group), ${result.report.bytesIn}B in → ${result.report.registryBytes}B registry`,
+        `atomic-css-modules: 0 atoms, 2 skipped rules (1 combinator, 1 mixed-group), ${result.report.bytesIn}B in → ${result.report.registryBytes}B registry, saved ${result.report.cssBytesSaved}B css, added ${result.report.classNameBytesAdded}B class names`,
         '  combinator: descendant or sibling selector (.a .b)',
         '  mixed-group: grouped list with an ineligible member (.a, div)',
       ].join('\n')
@@ -133,11 +143,11 @@ describe('atomization report', () => {
   it('appends one skip per line when the report is verbose', () => {
     const result = processCssModules(
       [{ filePath: 'combo.module.css', code: '.a .b { color: red; }\n' }],
-      { registryImportPath }
+      { registryImportPath, minOccurrences: 1 }
     )
     expect(formatAtomizationReport(result.report, { verbose: true })).toBe(
       [
-        `atomic-css-modules: 0 atoms, 1 skipped rule (1 combinator), ${result.report.bytesIn}B in → ${result.report.registryBytes}B registry`,
+        `atomic-css-modules: 0 atoms, 1 skipped rule (1 combinator), ${result.report.bytesIn}B in → ${result.report.registryBytes}B registry, saved ${result.report.cssBytesSaved}B css, added ${result.report.classNameBytesAdded}B class names`,
         '  combo.module.css  .a .b  combinator',
         '  combinator: descendant or sibling selector (.a .b)',
       ].join('\n')
@@ -149,7 +159,11 @@ describe('composeFrom global', () => {
   it('emits composes from global so the registry is not imported per module', () => {
     const result = processCssModules(
       [{ filePath: 'component.module.css', code: '.a { color: red; }' }],
-      { registryImportPath: './atomic-registry.css', composeFrom: 'global' }
+      {
+        registryImportPath: './atomic-registry.css',
+        composeFrom: 'global',
+        minOccurrences: 1,
+      }
     )
     const file = result.files[0]
     if (!file) throw new Error('expected one rewritten file')
@@ -194,7 +208,11 @@ describe('debug atom names', () => {
   it('uses a readable class name when debugNames is on', () => {
     const result = processCssModules(
       [{ filePath: 'button.module.css', code: '.a { color: red; }' }],
-      { registryImportPath: './atomic-registry.css', debugNames: true }
+      {
+        registryImportPath: './atomic-registry.css',
+        debugNames: true,
+        minOccurrences: 1,
+      }
     )
     const file = result.files[0]
     if (!file) throw new Error('expected one rewritten file')
@@ -205,7 +223,11 @@ describe('debug atom names', () => {
   it('prefixes a trailing pseudo in the debug name', () => {
     const result = processCssModules(
       [{ filePath: 'button.module.css', code: '.a:hover { color: blue; }' }],
-      { registryImportPath: './atomic-registry.css', debugNames: true }
+      {
+        registryImportPath: './atomic-registry.css',
+        debugNames: true,
+        minOccurrences: 1,
+      }
     )
     expect(result.registryCss).toMatch(/\.hover-color-00f-[a-z0-9]+:hover\s*\{/)
   })
@@ -221,7 +243,11 @@ describe('debug atom names', () => {
           `,
         },
       ],
-      { registryImportPath: './atomic-registry.css', debugNames: true }
+      {
+        registryImportPath: './atomic-registry.css',
+        debugNames: true,
+        minOccurrences: 1,
+      }
     )
     const names = [
       ...result.registryCss.matchAll(/\.(md-color-red-[a-z0-9]+)/g),
@@ -238,7 +264,11 @@ describe('source maps', () => {
     const original = '.a, .b { color: red; }'
     const result = processCssModules(
       [{ filePath: 'group.module.css', code: original }],
-      { registryImportPath: './atomic-registry.css', sourceMap: true }
+      {
+        registryImportPath: './atomic-registry.css',
+        sourceMap: true,
+        minOccurrences: 1,
+      }
     )
     const file = result.files[0]
     if (!file) throw new Error('expected one rewritten file')
@@ -713,7 +743,7 @@ describe('registry cascade order', () => {
           code: '.box { margin: 16px; }\n',
         },
       ],
-      { registryImportPath }
+      { registryImportPath, minOccurrences: 1 }
     )
     const marginAt = result.registryCss.search(/margin:\s*16px/)
     const marginTopAt = result.registryCss.search(/margin-top:\s*4px/)
@@ -829,7 +859,7 @@ describe('atomic skip comment', () => {
           code: '.a { /* atomic: skip */ color: red; }\n',
         },
       ],
-      { registryImportPath }
+      { registryImportPath, minOccurrences: 1 }
     )
     expect(result.report.skips).toEqual([
       {
@@ -919,14 +949,312 @@ describe('grouped selectors with nesting', () => {
 })
 
 describe('duplicate same-selector rules', () => {
-  it('merges registry composes into a single declaration', () => {
-    const { code } = run(`
+  it('merges registry composes into a single declaration when conflicts are allowed', () => {
+    const result = processCssModules(
+      [
+        {
+          filePath: 'component.module.css',
+          code: `
       .a { color: red; }
       .a { color: blue; }
-    `)
+    `,
+        },
+      ],
+      { registryImportPath, minOccurrences: 1, conflicts: 'allow' }
+    )
+    const file = result.files[0]
+    if (!file) throw new Error('expected one rewritten file')
+    const code = file.code
     const rule = /\.a\s*\{[^}]*\}/.exec(code)?.[0] ?? ''
     expect(rule.match(/composes:/g)?.length ?? 0).toBe(1)
     const names = extractComposedNames(rule)
     expect(names).toHaveLength(2)
+  })
+})
+
+describe('same-file override conflicts', () => {
+  it('keeps both classes local when they set the same property differently', () => {
+    const result = processCssModules(
+      [
+        {
+          filePath: 'icon.module.css',
+          code: '.icon { min-width: 16px; } .iconSmall { min-width: 12px; color: red; } .other { color: red; }',
+        },
+      ],
+      { registryImportPath }
+    )
+    const file = result.files[0]
+    if (!file) throw new Error('expected one rewritten file')
+    expect(file.code).toMatch(/\.icon\s*\{[^}]*min-width:\s*16px/)
+    expect(file.code).toMatch(/min-width:\s*12px/)
+    expect(file.code).not.toMatch(/composes:[^;]*;[^}]*min-width:\s*16px/)
+    expect(result.registryCss).not.toMatch(/min-width/)
+    expect(result.registryCss).toMatch(/color:\s*(red|#f00)/)
+    expect(
+      result.report.skips.filter((skip) => skip.reason === 'override-conflict')
+    ).toHaveLength(2)
+  })
+
+  it('keeps shorthand and longhand overlap local across classes', () => {
+    const result = processCssModules(
+      [
+        {
+          filePath: 'box.module.css',
+          code: '.a { margin: 0; } .b { margin-left: 4px; }',
+        },
+      ],
+      { registryImportPath, minOccurrences: 1 }
+    )
+    const file = result.files[0]
+    if (!file) throw new Error('expected one rewritten file')
+    expect(file.code).toMatch(/margin:\s*0/)
+    expect(file.code).toMatch(/margin-left:\s*4px/)
+    expect(file.code).not.toMatch(/composes:/)
+    expect(result.report.skips.map((skip) => skip.reason)).toEqual([
+      'override-conflict',
+      'override-conflict',
+    ])
+  })
+
+  it('throws OverrideConflictError when conflicts is error', () => {
+    expect(() =>
+      processCssModules(
+        [
+          {
+            filePath: 'icon.module.css',
+            code: '.icon { min-width: 16px; } .iconSmall { min-width: 12px; }',
+          },
+        ],
+        { registryImportPath, conflicts: 'error', minOccurrences: 1 }
+      )
+    ).toThrow(OverrideConflictError)
+  })
+})
+
+describe('local names', () => {
+  it('leaves a class that animates a local keyframe unchanged', () => {
+    const result = processCssModules(
+      [
+        {
+          filePath: 'spin.module.css',
+          code: '@keyframes spin { to { rotate: 1turn; } } .a { animation: spin 1s; color: red; } .b { color: red; }',
+        },
+      ],
+      { registryImportPath }
+    )
+    const file = result.files[0]
+    if (!file) throw new Error('expected one rewritten file')
+    expect(file.code).toMatch(/animation:[^;]*\bspin\b/)
+    expect(file.code).toMatch(/@keyframes\s+spin/)
+    expect(result.registryCss).not.toMatch(/animation/)
+    expect(result.registryCss).toMatch(/color:\s*(red|#f00)/)
+    expect(
+      result.report.skips.some((skip) => skip.reason === 'local-reference')
+    ).toBe(true)
+  })
+})
+
+describe('lightningcss round trip', () => {
+  it('rewrites a file that mixes an atom with var() inside @layer', () => {
+    const result = processCssModules(
+      [
+        {
+          filePath: 'layer.module.css',
+          code: '@layer x { .a { stroke-linecap: round; } .b .a { stroke: var(--c); } .c { stroke-linecap: round; } }',
+        },
+      ],
+      { registryImportPath }
+    )
+    const file = result.files[0]
+    if (!file) throw new Error('expected one rewritten file')
+    expect(file.code).toMatch(/stroke:\s*var\(--c\)/)
+    expect(result.registryCss).toMatch(/stroke-linecap:\s*round/)
+    expect(result.registryCss).toMatch(/@layer/)
+  })
+
+  it('rewrites nested hover next to var()', () => {
+    const result = processCssModules(
+      [
+        {
+          filePath: 'hover.module.css',
+          code: '.a { color: red; &:hover { color: var(--c); } } .b { color: red; }',
+        },
+      ],
+      { registryImportPath }
+    )
+    const file = result.files[0]
+    if (!file) throw new Error('expected one rewritten file')
+    expect(file.code).toMatch(/var\(--c\)/)
+    expect(result.registryCss).toMatch(/color:\s*(red|#f00)/)
+  })
+
+  it('leaves a custom at-rule inside a style rule untouched', () => {
+    const result = processCssModules(
+      [
+        {
+          filePath: 'token.module.css',
+          code: ".x { @token-text 'body'; color: red; } .y { color: red; }",
+        },
+      ],
+      { registryImportPath }
+    )
+    const file = result.files[0]
+    if (!file) throw new Error('expected one rewritten file')
+    expect(file.code).toMatch(/@token-text/)
+    expect(file.code).toMatch(/body/)
+    expect(
+      result.report.skips.some((skip) => skip.reason === 'unknown-at-rule')
+    ).toBe(true)
+    expect(result.registryCss).toMatch(/color:\s*(red|#f00)/)
+  })
+})
+
+describe('custom at-rules', () => {
+  it('keeps the semicolon between statement at-rules', () => {
+    const result = processCssModules(
+      [
+        {
+          filePath: 'tokens.module.css',
+          code: [
+            '@token-block "card" { color: blue; }',
+            '@token-overflow "truncate";',
+            '@token-text "caption";',
+            '.a { color: red; }',
+            '.b { color: red; }',
+          ].join('\n'),
+        },
+      ],
+      {
+        registryImportPath,
+        customAtRules: {
+          'token-block': { prelude: '<string>', body: 'style-block' },
+          'token-overflow': { prelude: '<string>', body: null },
+          'token-text': { prelude: '<string>', body: null },
+        },
+      }
+    )
+    const file = result.files[0]
+    if (!file) throw new Error('expected one rewritten file')
+    expect(file.code).toMatch(/@token-overflow "truncate";/)
+    expect(file.code).toMatch(/@token-text "caption";/)
+    expect(file.code).toMatch(/#00f/)
+  })
+})
+
+describe('per-file failures', () => {
+  it('keeps the broken file and still atomizes its neighbor', () => {
+    const result = processCssModules(
+      [
+        { filePath: 'bad.module.css', code: '{{{{' },
+        {
+          filePath: 'ok.module.css',
+          code: '.a { color: red; } .b { color: red; }',
+        },
+      ],
+      { registryImportPath }
+    )
+    const bad = result.files.find((file) => file.filePath === 'bad.module.css')
+    const ok = result.files.find((file) => file.filePath === 'ok.module.css')
+    expect(bad?.code).toBe('{{{{')
+    expect(bad?.changed).toBe(false)
+    expect(ok?.code).toMatch(/composes:/)
+    expect(result.report.failures).toEqual([
+      { filePath: 'bad.module.css', message: expect.any(String) },
+    ])
+    expect(result.registryCss).toMatch(/color:\s*(red|#f00)/)
+  })
+
+  it('throws when strict is set', () => {
+    expect(() =>
+      processCssModules(
+        [
+          { filePath: 'bad.module.css', code: '{{{{' },
+          { filePath: 'ok.module.css', code: '.a { color: red; }' },
+        ],
+        { registryImportPath, strict: true, minOccurrences: 1 }
+      )
+    ).toThrow(/Unexpected|Invalid|empty selector/i)
+  })
+})
+
+describe('registry definitions', () => {
+  it('emits imported custom media so the registry transforms on its own', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'atomic-media-'))
+    try {
+      const tokens = path.join(dir, 'tokens.css')
+      const component = path.join(dir, 'component.module.css')
+      writeFileSync(
+        tokens,
+        '@custom-media --breakpoint-md (min-width: 600px);\n'
+      )
+      writeFileSync(
+        component,
+        `@import "./tokens.css";\n.a { color: red; }\n.b { color: red; }\n@media (--breakpoint-md) { .a { margin: 0; } .b { margin: 0; } }\n`
+      )
+      const result = processCssModules(
+        [{ filePath: component, code: readFileSync(component, 'utf8') }],
+        { registryImportPath }
+      )
+      expect(result.registryCss).toMatch(/@custom-media\s+--breakpoint-md/)
+      expect(() =>
+        transform({
+          filename: 'registry.css',
+          code: Buffer.from(result.registryCss),
+          drafts: { customMedia: true },
+        })
+      ).not.toThrow()
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+})
+
+describe('minOccurrences', () => {
+  it('leaves a single use local and hoists a declaration shared by two classes', () => {
+    const once = processCssModules(
+      [{ filePath: 'once.module.css', code: '.a { color: red; }' }],
+      { registryImportPath }
+    )
+    expect(once.registryCss).toBe('')
+    expect(once.files[0]?.code).not.toMatch(/composes:/)
+
+    const twice = processCssModules(
+      [
+        {
+          filePath: 'twice.module.css',
+          code: '.a { color: red; } .b { color: red; }',
+        },
+      ],
+      { registryImportPath }
+    )
+    expect(twice.registryCss).toMatch(/color:\s*(red|#f00)/)
+    expect(twice.files[0]?.code).toMatch(/composes:/)
+  })
+})
+
+describe('groupConditions', () => {
+  it('keeps one at-rule for adjacent atoms and does not merge different conditions', () => {
+    const shared =
+      '@container (min-width: 600px) { .a { color: red; margin: 0; } .b { color: red; margin: 0; } }'
+    const separate = processCssModules(
+      [{ filePath: 'media.module.css', code: shared }],
+      { registryImportPath }
+    )
+    const grouped = processCssModules(
+      [{ filePath: 'media.module.css', code: shared }],
+      { registryImportPath, groupConditions: true }
+    )
+    expect(grouped.registryCss).toBe(separate.registryCss)
+    expect(grouped.registryCss.match(/@container/g)?.length ?? 0).toBe(1)
+    expect(grouped.registryCss).toMatch(/color:/)
+    expect(grouped.registryCss).toMatch(/margin:/)
+
+    const split =
+      '@container (min-width: 600px) { .a { color: red; } .b { color: red; } } @container (min-width: 800px) { .a { margin: 0; } .b { margin: 0; } }'
+    const splitGrouped = processCssModules(
+      [{ filePath: 'media.module.css', code: split }],
+      { registryImportPath, groupConditions: true }
+    )
+    expect(splitGrouped.registryCss.match(/@container/g)?.length ?? 0).toBe(2)
   })
 })

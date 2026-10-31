@@ -59,9 +59,15 @@ export default {
 }
 ```
 
+CommonJS configs can `require('@zslabs/atomic-css-modules/webpack')`. The same `require` condition exists for the package root, `./vite`, and `./postcss`.
+
 On Rspack, use `rspack.CssExtractRspackPlugin` with the same rule, or native CSS with the standard `{ test: /\.css$/, type: 'css/auto' }` rule and `experiments.css: true`.
 
-Keep `css-loader`'s default `modules.auto` (or any setting that only scopes `*.module.css`). The shared registry is a plain `.css` file shipped with the package and must stay global.
+`.module.less`, `.module.scss`, `.module.sass`, and `.module.styl` work when the bundler already compiles them. Set `include` to those globs. The plugin inserts its rewrite loader immediately before `less-loader`, `sass-loader`, or `stylus-loader`, so it sees compiled CSS. A `preprocess` function is only needed when you want the startup scan to see that same compiled CSS. It may be async, and it has to reproduce the bundler's aliases, global variables, and plugins. Return `{ code, dependencies }` when that compilation reads other files. A warm start skips `preprocess` until the source or one of those files changes.
+
+Keep `css-loader`'s default `modules.auto` (or any setting that only scopes `*.module.css` and the other module suffixes you include). The shared registry is a plain `.css` file shipped with the package and must stay global. Each compilation gets a registry built from the modules it actually uses. Two apps in one repo that share no modules get disjoint registries. Entries in one compilation still share a registry.
+
+The registry loader reads the in-memory registry for that compilation, so it is not itself cached. Scan results are. Loader options still include `cacheVersion`. Set webpack's `cache.version` (or Rspack's) to `plugin.cacheVersion` after you construct the plugin when you use a persistent cache, so a change to atomization options misses the bundler cache.
 
 ### Next.js
 
@@ -92,13 +98,19 @@ body {
 
 ### Options
 
-| Option       | Default                         | Notes                                                            |
-| ------------ | ------------------------------- | ---------------------------------------------------------------- |
-| `include`    | `**/*.module.css`               | Globs relative to the Vite root, webpack context, or PostCSS cwd |
-| `exclude`    | `**/node_modules/**`            |                                                                  |
-| `debugNames` | `true` in dev, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes              |
-| `report`     | `"summary"`                     | `"verbose"` lists each skipped selector                          |
-| `preprocess` | —                               | `(code, filePath) => code` before scan/atomize                   |
+| Option            | Default                         | Notes                                                                                                                         |
+| ----------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `include`         | `**/*.module.css`               | Globs relative to the Vite root, webpack context, or PostCSS cwd. Example: `**/*.module.less`                                 |
+| `exclude`         | `**/node_modules/**`            |                                                                                                                               |
+| `debugNames`      | `true` in dev, `false` in build | Readable atoms (`color-red-a1b2c3`) vs short hashes                                                                           |
+| `report`          | `"summary"`                     | `"verbose"` lists each skipped selector. The summary also lists per-file failures                                             |
+| `preprocess`      |                                 | `(code, filePath) => string` or `{ code, dependencies }`. Warm start skips it when the source and those imports are unchanged |
+| `conflicts`       | `"skip"`                        | `"error"` fails the build. `"allow"` keeps both atoms and lets registry order decide                                          |
+| `minOccurrences`  | `2`                             | Declarations used by fewer local classes stay in the module                                                                   |
+| `localIdents`     | keyframes and counter-styles    | `container` and `dashedIdents` also keep those names local. Off unless you set them                                           |
+| `customAtRules`   |                                 | At-rules with a body are passed to lightningcss. Statement at-rules stay unknown so their semicolons survive                  |
+| `strict`          | `false`                         | One broken file stays as authored and is listed on the report. `true` fails the build                                         |
+| `groupConditions` | `false`                         | Merge adjacent registry atoms that already share an at-rule condition. Does not reorder                                       |
 
 "Dev" means `vite serve`, webpack/Rspack in `development` mode, or `next dev`. Production watch keeps the short hashes.
 
@@ -156,7 +168,9 @@ The first build logs atom count, skip reasons, and source vs registry bytes.
 
 - Only selectors that CSS Modules can `composes` are atomized (see the guide).
 - Shorthand + longhand in the same rule skip those properties for that rule.
-- Stick to CSS Modules local classes. Do not stack atomized classes, or another utility system on the same node, to override the same property. Prefer one class, or `/* atomic: skip */` when sharing would be wrong.
+- Same-file classes that set one property (or a shorthand and its longhand) to different values stay local. `conflicts: "error"` fails the build instead. Cross-file conflicts are not detected, so two modules can still publish different values for one atom and the registry order decides the winner.
+- `@keyframes` and `@counter-style` names defined in a file stay with the declarations that use them. Container names and dashed idents stay local only when `localIdents.container` or `localIdents.dashedIdents` is set.
+- The registry keeps `@custom-media`, `@property`, and `@layer` order statements collected from the scanned file and its relative `@import`s. Bare and remote specifiers are skipped.
 - On small sheets, gzip/brotli often erase the atomic class win (many one-declaration rules compress worse than fewer larger ones). The payoff shows up when UI grows against a shared token surface: Modules CSS scales with components, the atom set scales with the design system.
 - This is **0.x**: the supported surface below is stable within a minor when practical, but breaking changes may land before 1.0.
 

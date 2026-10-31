@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { FileScanCache } from '../src/file-scan-cache.js'
 
@@ -92,5 +95,57 @@ describe('FileScanCache', () => {
     })
 
     expect(forward.snapshot().registryCss).toBe(reverse.snapshot().registryCss)
+  })
+
+  it('reuses a scan stored on disk', () => {
+    const cacheDir = mkdtempSync(path.join(tmpdir(), 'atomic-scan-cache-'))
+    const options = { cacheDir, policyKey: 'test-policy' }
+    const file = { filePath: 'a.module.css', code: '.a { color: red; }\n' }
+    try {
+      const first = new FileScanCache(options)
+      expect(first.update(file)).toBe(true)
+      expect(first.loadedFromDisk(file.filePath)).toBe(false)
+
+      const second = new FileScanCache(options)
+      expect(second.update(file)).toBe(true)
+      expect(second.loadedFromDisk(file.filePath)).toBe(true)
+      expect(second.snapshot().registryCss).toBe(first.snapshot().registryCss)
+    } finally {
+      rmSync(cacheDir, { recursive: true, force: true })
+    }
+  })
+
+  it('reuses a preprocessed scan from the raw source and its imports', () => {
+    const cacheDir = mkdtempSync(path.join(tmpdir(), 'atomic-scan-cache-'))
+    const dir = mkdtempSync(path.join(tmpdir(), 'atomic-scan-src-'))
+    const filePath = path.join(dir, 'a.module.css')
+    const depPath = path.join(dir, 'tokens.css')
+    const raw = '.a { color: TOKEN; }\n'
+    const compiled = '.a { color: red; }\n'
+    const options = { cacheDir, policyKey: 'preprocess' }
+    try {
+      writeFileSync(depPath, 'red\n')
+      const first = new FileScanCache(options)
+      expect(
+        first.update(
+          { filePath, code: compiled },
+          { code: raw, dependencies: ['tokens.css'] }
+        )
+      ).toBe(true)
+
+      const second = new FileScanCache(options)
+      expect(second.reuseRaw(filePath, raw)).toBe(compiled)
+      expect(second.loadedFromDisk(filePath)).toBe(true)
+
+      const rawChanged = new FileScanCache(options)
+      expect(rawChanged.reuseRaw(filePath, `${raw}\n`)).toBeUndefined()
+
+      writeFileSync(depPath, 'blue\n')
+      const depChanged = new FileScanCache(options)
+      expect(depChanged.reuseRaw(filePath, raw)).toBeUndefined()
+    } finally {
+      rmSync(cacheDir, { recursive: true, force: true })
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })
