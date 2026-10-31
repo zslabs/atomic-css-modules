@@ -9,6 +9,7 @@ export interface LoaderContext {
   getOptions(): LoaderOptions
   cacheable(flag?: boolean): void
   addDependency(file: string): void
-  callback(error: Error | null, content: string, sourceMap?: unknown): void
+  callback(error: Error | null, content?: string, sourceMap?: unknown): void
+  async(): LoaderContext['callback']
   _module?: object
 }

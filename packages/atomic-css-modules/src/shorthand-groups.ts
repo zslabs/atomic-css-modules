@@ -67,6 +67,11 @@ function setsOverlap(left: Set<string>, right: Set<string>): boolean {
   return false
 }
 
+/** True when two properties can write the same longhand, including a property compared with itself. */
+export function propertiesOverlap(left: string, right: string): boolean {
+  return setsOverlap(coverage(left), coverage(right))
+}
+
 function isProperSuperset(left: Set<string>, right: Set<string>): boolean {
   if (left.size <= right.size) return false
   for (const value of right) {

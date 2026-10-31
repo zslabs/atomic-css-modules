@@ -8,8 +8,14 @@
  */
 import type { Rule, StyleRule } from 'lightningcss'
 import { transform } from 'lightningcss'
+import { stripNullsDeep } from './declaration-utils.js'
+import { userStylesheetOptions } from './lightning-options.js'
 import { comparePropertyCascadeOrder } from './shorthand-groups.js'
-import type { Atom, AtomWrapper } from './types.js'
+import type { Atom, AtomCondition, AtomWrapper } from './types.js'
+
+export interface RegistryBuildOptions {
+  definitions?: readonly Rule[]
+}
 
 /**
  * Stable registry emission order: shorthands before their longhands, then
@@ -59,14 +65,14 @@ function atomStyleRule(atom: Atom): Rule {
   }
 }
 
-function wrapOne(wrapper: AtomWrapper, inner: Rule): Rule {
+function wrapMany(wrapper: AtomWrapper, rules: Rule[]): Rule {
   if (wrapper.kind === 'media') {
     return {
       type: 'media',
       value: {
         loc: locationStub(),
         query: wrapper.query,
-        rules: [inner],
+        rules,
       },
     }
   }
@@ -75,7 +81,7 @@ function wrapOne(wrapper: AtomWrapper, inner: Rule): Rule {
       type: 'container',
       value: {
         loc: locationStub(),
-        rules: [inner],
+        rules,
         ...(wrapper.name ? { name: wrapper.name } : {}),
         ...(wrapper.condition ? { condition: wrapper.condition } : {}),
       },
@@ -87,7 +93,7 @@ function wrapOne(wrapper: AtomWrapper, inner: Rule): Rule {
       value: {
         loc: locationStub(),
         condition: wrapper.condition,
-        rules: [inner],
+        rules,
       },
     }
   }
@@ -96,7 +102,7 @@ function wrapOne(wrapper: AtomWrapper, inner: Rule): Rule {
       type: 'layer-block',
       value: {
         loc: locationStub(),
-        rules: [inner],
+        rules,
         ...(wrapper.name ? { name: wrapper.name } : {}),
       },
     }
@@ -106,7 +112,7 @@ function wrapOne(wrapper: AtomWrapper, inner: Rule): Rule {
       type: 'starting-style',
       value: {
         loc: locationStub(),
-        rules: [inner],
+        rules,
       },
     }
   }
@@ -114,34 +120,47 @@ function wrapOne(wrapper: AtomWrapper, inner: Rule): Rule {
     type: 'scope',
     value: {
       loc: locationStub(),
-      rules: [inner],
+      rules,
       ...(wrapper.scopeStart ? { scopeStart: wrapper.scopeStart } : {}),
       ...(wrapper.scopeEnd ? { scopeEnd: wrapper.scopeEnd } : {}),
     },
   }
 }
 
-function wrapInCondition(atom: Atom, styleRule: Rule): Rule {
-  return atom.key.condition.reduceRight(
-    (inner, wrapper) => wrapOne(wrapper, inner),
-    styleRule
-  )
+function wrapRules(condition: AtomCondition, rules: Rule[]): Rule[] {
+  let wrapped = rules
+  for (let index = condition.length - 1; index >= 0; index -= 1) {
+    const wrapper = condition[index]
+    if (!wrapper) continue
+    wrapped = [wrapMany(wrapper, wrapped)]
+  }
+  return wrapped
 }
 
 /** Builds the atomic registry CSS text for a set of collected atoms. Returns an empty string if there are none. */
-export function buildRegistryCss(atoms: Iterable<Atom>): string {
+export function buildRegistryCss(
+  atoms: Iterable<Atom>,
+  options: RegistryBuildOptions = {}
+): string {
   const atomList = sortAtomsForRegistry([...atoms])
-  if (atomList.length === 0) return ''
+  const definitions = options.definitions ?? []
+  if (atomList.length === 0 && definitions.length === 0) return ''
 
   const result = transform({
     filename: 'atomic-registry.css',
     code: Buffer.from(''),
+    ...userStylesheetOptions(),
     visitor: {
       StyleSheetExit(sheet) {
-        sheet.rules = atomList.map((atom) =>
-          wrapInCondition(atom, atomStyleRule(atom))
-        )
-        return sheet
+        const rules: Rule[] = [
+          ...definitions,
+          ...atomList.flatMap((atom) =>
+            wrapRules(atom.key.condition, [atomStyleRule(atom)])
+          ),
+        ]
+        const target = stripNullsDeep(sheet)
+        target.rules = stripNullsDeep(rules)
+        return target
       },
     },
   })
