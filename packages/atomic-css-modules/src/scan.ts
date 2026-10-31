@@ -13,6 +13,17 @@ import {
   isComposesDeclaration,
 } from './declaration-utils.js'
 import { allocateUniqueClassName } from './hash.js'
+import { userStylesheetOptions } from './lightning-options.js'
+import {
+  emptyLocalNames,
+  referencesLocalName,
+  type LocalNames,
+} from './local-names.js'
+import {
+  applyOverrideConflicts,
+  isOverrideConflictError,
+  pruneUnreferencedAtoms,
+} from './override-conflicts.js'
 import { RuleContextTracker, type RuleVisitContext } from './rule-context.js'
 import {
   classifyEligibleGroup,
@@ -22,6 +33,7 @@ import {
   skipReasonForSelectors,
 } from './selector-utils.js'
 import { findShorthandConflicts } from './shorthand-groups.js'
+import { inspectSheet, ruleHasForeignAtRule } from './sheet-info.js'
 import { hasAtomicSkipComment } from './skip-comment.js'
 import type {
   Atom,
@@ -33,6 +45,11 @@ import type {
   ScanRuleInfo,
   SourceFile,
 } from './types.js'
+
+export type ScanOptions = Pick<
+  ProcessOptions,
+  'debugNames' | 'conflicts' | 'localIdents' | 'customAtRules' | 'strict'
+>
 
 function ineligibleRuleInfo(context: RuleVisitContext): ScanRuleInfo {
   return {
@@ -53,7 +70,11 @@ function collectAtoms(
   classification: ReturnType<typeof classifySelector>,
   atoms: Map<string, Atom>,
   taken: Set<string>,
-  debugNames: boolean
+  debugNames: boolean,
+  names: LocalNames,
+  skips: AtomizationSkip[],
+  filePath: string,
+  selectorLabel: string
 ): {
   atomKeys: string[]
   atomHashes: string[]
@@ -78,6 +99,15 @@ function collectAtoms(
     const property = declarationProperty(declaration)
     if (shorthandConflicts.has(property)) {
       decisions.push({ action: 'keep', important })
+      continue
+    }
+    if (referencesLocalName(declaration, context.condition, names)) {
+      decisions.push({ action: 'keep', important })
+      skips.push({
+        filePath,
+        selector: selectorLabel,
+        reason: 'local-reference',
+      })
       continue
     }
 
@@ -132,7 +162,8 @@ function scanStyleLikeRule(
   rules: ScanRuleInfo[],
   skips: AtomizationSkip[],
   file: SourceFile,
-  debugNames: boolean
+  debugNames: boolean,
+  names: LocalNames
 ): void {
   const loc =
     rule.type === 'style' || rule.type === 'nested-declarations'
@@ -167,13 +198,18 @@ function scanStyleLikeRule(
         continue
       }
       anyEligible = true
+      const selectorLabel = printSelectorList([classification.strippedSelector])
       const collected = collectAtoms(
         rule.value.declarations,
         context,
         classification,
         atoms,
         taken,
-        debugNames
+        debugNames,
+        names,
+        skips,
+        file.filePath,
+        selectorLabel
       )
       rules.push({
         eligible: true,
@@ -198,6 +234,19 @@ function scanStyleLikeRule(
 
   if (rule.type !== 'style') return
 
+  if (ruleHasForeignAtRule(rule)) {
+    const selectors = rule.value.selectors.flatMap((selector) =>
+      context.resolveAll(selector)
+    )
+    rules.push(ineligibleRuleInfo(context))
+    skips.push({
+      filePath: file.filePath,
+      selector: printSelectorList(selectors),
+      reason: 'unknown-at-rule',
+    })
+    return
+  }
+
   const resolved = rule.value.selectors.flatMap((selector) =>
     context.resolveAll(selector)
   )
@@ -213,13 +262,18 @@ function scanStyleLikeRule(
   }
 
   for (const classification of classifications) {
+    const selectorLabel = printSelectorList([classification.strippedSelector])
     const collected = collectAtoms(
       rule.value.declarations,
       context,
       classification,
       atoms,
       taken,
-      debugNames
+      debugNames,
+      names,
+      skips,
+      file.filePath,
+      selectorLabel
     )
     rules.push({
       eligible: true,
@@ -240,53 +294,83 @@ function scanStyleLikeRule(
   }
 }
 
+function failedScan(filePath: string, message: string): ScanFileResult {
+  return { filePath, rules: [], definitions: [], failure: message }
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 function scanFile(
   file: SourceFile,
   atoms: Map<string, Atom>,
   taken: Set<string>,
   skips: AtomizationSkip[],
-  debugNames: boolean
+  options: ScanOptions
 ): ScanFileResult {
   const tracker = new RuleContextTracker()
   const rules: ScanRuleInfo[] = []
+  const debugNames = options.debugNames === true
+  let names = emptyLocalNames()
+  let definitions: ScanFileResult['definitions'] = []
 
-  transform({
-    filename: file.filePath,
-    code: Buffer.from(file.code, 'utf8'),
-    visitor: {
-      Rule(rule) {
-        const context = tracker.enter(rule)
-        if (!context) return
-        scanStyleLikeRule(
-          rule,
-          context,
-          atoms,
-          taken,
-          rules,
-          skips,
-          file,
-          debugNames
-        )
+  try {
+    transform({
+      filename: file.filePath,
+      code: Buffer.from(file.code, 'utf8'),
+      ...userStylesheetOptions(options.customAtRules),
+      visitor: {
+        StyleSheet(sheet) {
+          const info = inspectSheet(sheet.rules, file.filePath, options)
+          names = info.names
+          definitions = info.definitions
+        },
+        Rule(rule) {
+          const context = tracker.enter(rule)
+          if (!context) return
+          scanStyleLikeRule(
+            rule,
+            context,
+            atoms,
+            taken,
+            rules,
+            skips,
+            file,
+            debugNames,
+            names
+          )
+        },
+        RuleExit(rule) {
+          tracker.exit(rule)
+        },
       },
-      RuleExit(rule) {
-        tracker.exit(rule)
-      },
-    },
-  })
+    })
+  } catch (error) {
+    if (options.strict) throw error
+    return failedScan(file.filePath, errorMessage(error))
+  }
 
-  return { filePath: file.filePath, rules }
+  const scanned = { filePath: file.filePath, rules, definitions }
+  applyOverrideConflicts(scanned, atoms, skips, options.conflicts ?? 'skip')
+  return scanned
 }
 
 export function scanFiles(
   files: readonly SourceFile[],
-  options: Pick<ProcessOptions, 'debugNames'> = {}
+  options: ScanOptions = {}
 ): ScanResult {
   const atoms = new Map<string, Atom>()
   const taken = new Set<string>()
   const skips: AtomizationSkip[] = []
-  const debugNames = options.debugNames === true
-  const scannedFiles = files.map((file) =>
-    scanFile(file, atoms, taken, skips, debugNames)
-  )
+  const scannedFiles = files.map((file) => {
+    try {
+      return scanFile(file, atoms, taken, skips, options)
+    } catch (error) {
+      if (options.strict || isOverrideConflictError(error)) throw error
+      return failedScan(file.filePath, errorMessage(error))
+    }
+  })
+  pruneUnreferencedAtoms(atoms, scannedFiles)
   return { atoms, files: scannedFiles, skips }
 }
