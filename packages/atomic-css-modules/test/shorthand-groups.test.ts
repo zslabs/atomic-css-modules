@@ -36,9 +36,9 @@ describe('findShorthandConflicts', () => {
 describe('comparePropertyCascadeOrder', () => {
   it('orders a shorthand before its longhand', () => {
     expect(comparePropertyCascadeOrder('margin', 'margin-left')).toBeLessThan(0)
-    expect(comparePropertyCascadeOrder('margin-left', 'margin')).toBeGreaterThan(
-      0
-    )
+    expect(
+      comparePropertyCascadeOrder('margin-left', 'margin')
+    ).toBeGreaterThan(0)
   })
 
   it('treats unrelated properties as equal on the cascade axis', () => {

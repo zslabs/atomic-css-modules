@@ -3,17 +3,30 @@
  * instead of re-parsing every CSS module on each HMR or transform.
  */
 import { ensureUniqueAtomNames, syncScanAtomHashes } from './atoms.js'
+import { pruneUnreferencedAtoms } from './override-conflicts.js'
 import { buildRegistryCss } from './registry.js'
 import { summarizeAtomization } from './report.js'
-import { scanFiles } from './scan.js'
+import { scanFiles, type ScanOptions } from './scan.js'
+import { dedupeDefinitions } from './sheet-info.js'
 import type {
   Atom,
+  AtomicCustomAtRules,
   AtomizationReport,
   AtomizationSkip,
+  ConflictMode,
+  LocalIdentOptions,
   ScanFileResult,
   ScanResult,
   SourceFile,
 } from './types.js'
+
+export interface FileScanCacheOptions {
+  debugNames?: boolean
+  conflicts?: ConflictMode
+  localIdents?: LocalIdentOptions
+  customAtRules?: AtomicCustomAtRules
+  strict?: boolean
+}
 
 interface CachedFile {
   contentHash: string
@@ -50,12 +63,17 @@ function cloneAtom(atom: Atom): Atom {
 export class FileScanCache {
   private readonly entries = new Map<string, CachedFile>()
   private debugNames = false
+  private materializedFiles: ScanFileResult[] = []
   /** Last rematerialized global atom map (class names globally unique). */
   private mergedAtoms = new Map<string, Atom>()
   /** False until the first snapshot, so that pass does not mark every file remapped. */
   private snapshotted = false
   /** Composed class names from the previous snapshot, keyed by file. */
   private previousHashes = new Map<string, string>()
+
+  constructor(private readonly options: FileScanCacheOptions = {}) {
+    this.debugNames = options.debugNames === true
+  }
 
   /** True when the cache was cleared because the naming mode changed. */
   setDebugNames(debugNames: boolean): boolean {
@@ -65,6 +83,7 @@ export class FileScanCache {
     this.mergedAtoms = new Map()
     this.snapshotted = false
     this.previousHashes = new Map()
+    this.materializedFiles = []
     return true
   }
 
@@ -74,10 +93,9 @@ export class FileScanCache {
     const existing = this.entries.get(file.filePath)
     if (existing && existing.contentHash === hash) return false
 
-    const scanned = scanFiles([file], { debugNames: this.debugNames })
+    const scanned = scanFiles([file], this.scanOptions())
     const scan = scanned.files[0]
     if (!scan) throw new Error(`scan produced no result for ${file.filePath}`)
-
     this.entries.set(file.filePath, {
       contentHash: hash,
       code: file.code,
@@ -86,6 +104,16 @@ export class FileScanCache {
       skips: scanned.skips,
     })
     return true
+  }
+
+  noteFailure(filePath: string, code: string, message: string): void {
+    this.entries.set(filePath, {
+      contentHash: contentHash(`${code}\0${message}`),
+      code,
+      scan: { filePath, rules: [], definitions: [], failure: message },
+      atoms: new Map(),
+      skips: [],
+    })
   }
 
   has(filePath: string): boolean {
@@ -140,6 +168,8 @@ export class FileScanCache {
       // until we write them back via sync (we sync the clones used for rewrite).
       scanFilesResult.push({
         filePath: entry.scan.filePath,
+        definitions: [...entry.scan.definitions],
+        ...(entry.scan.failure ? { failure: entry.scan.failure } : {}),
         rules: entry.scan.rules.map((rule) => ({
           ...rule,
           atomKeys: [...rule.atomKeys],
@@ -153,6 +183,7 @@ export class FileScanCache {
       skips.push(...entry.skips)
     }
 
+    pruneUnreferencedAtoms(atoms, scanFilesResult)
     ensureUniqueAtomNames(atoms)
     syncScanAtomHashes(scanFilesResult, atoms)
     // Persist remapped hashes onto cached scans so getScan matches rewrite.
@@ -181,7 +212,12 @@ export class FileScanCache {
     )
 
     const scan: ScanResult = { atoms, files: scanFilesResult, skips }
-    const registryCss = buildRegistryCss(atoms.values())
+    this.materializedFiles = scanFilesResult
+    const registryCss = buildRegistryCss(atoms.values(), {
+      definitions: dedupeDefinitions(
+        scanFilesResult.flatMap((file) => file.definitions)
+      ),
+    })
     return {
       files,
       scan,
@@ -189,6 +225,39 @@ export class FileScanCache {
       registryHash: contentHash(registryCss),
       remappedFiles,
       report: summarizeAtomization(files, scan, registryCss),
+    }
+  }
+
+  /** Registry containing only atoms referenced by these files. */
+  registryFor(
+    paths: ReadonlySet<string>
+  ): { css: string; hash: string } | null {
+    const files = this.materializedFiles.filter((file) =>
+      paths.has(file.filePath)
+    )
+    if (files.length === 0) return null
+    const atoms = new Map<string, Atom>()
+    for (const file of files) {
+      for (const rule of file.rules) {
+        for (const key of rule.atomKeys) {
+          const atom = this.mergedAtoms.get(key)
+          if (atom) atoms.set(key, atom)
+        }
+      }
+    }
+    const css = buildRegistryCss(atoms.values(), {
+      definitions: dedupeDefinitions(files.flatMap((file) => file.definitions)),
+    })
+    return { css, hash: contentHash(css) }
+  }
+
+  private scanOptions(): ScanOptions {
+    return {
+      debugNames: this.debugNames,
+      conflicts: this.options.conflicts ?? 'skip',
+      localIdents: this.options.localIdents,
+      customAtRules: this.options.customAtRules,
+      strict: this.options.strict,
     }
   }
 }

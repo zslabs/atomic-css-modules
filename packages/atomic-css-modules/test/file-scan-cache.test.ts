@@ -93,4 +93,5 @@ describe('FileScanCache', () => {
 
     expect(forward.snapshot().registryCss).toBe(reverse.snapshot().registryCss)
   })
+
 })

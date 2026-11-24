@@ -15,14 +15,21 @@ function states(): Map<string, AtomicPluginState> {
 
 export interface LoaderOptions {
   stateId: string
-  /** False on Rspack, which does not expose the extracted CSS for patching. */
+  /** Included so a persistent loader cache misses when atomization options change. */
+  cacheVersion: string
+  /** True when a preprocessor loader has already compiled this file. */
+  compiled?: boolean
+  /** @deprecated Registry loading is always cacheable. Kept so old options still parse. */
   cacheRegistry?: boolean
 }
 
-export function registerState(state: AtomicPluginState): LoaderOptions {
-  const stateId = `atomic-css-modules-${states().size}`
+export function registerState(
+  state: AtomicPluginState,
+  stateId: string,
+  cacheVersion: string
+): LoaderOptions {
   states().set(stateId, state)
-  return { stateId }
+  return { stateId, cacheVersion }
 }
 
 export function resolveState(options: LoaderOptions): AtomicPluginState {

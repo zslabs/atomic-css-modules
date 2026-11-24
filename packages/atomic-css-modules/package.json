@@ -39,19 +39,27 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/cjs/index.cjs",
+      "default": "./dist/cjs/index.cjs"
     },
     "./vite": {
       "types": "./dist/vite-plugin.d.ts",
-      "import": "./dist/vite-plugin.js"
+      "import": "./dist/vite-plugin.js",
+      "require": "./dist/cjs/vite-plugin.cjs",
+      "default": "./dist/cjs/vite-plugin.cjs"
     },
     "./postcss": {
       "types": "./dist/postcss-plugin.d.ts",
-      "import": "./dist/postcss-plugin.js"
+      "import": "./dist/postcss-plugin.js",
+      "require": "./dist/cjs/postcss-plugin.cjs",
+      "default": "./dist/cjs/postcss-plugin.cjs"
     },
     "./webpack": {
       "types": "./dist/webpack-plugin.d.ts",
-      "import": "./dist/webpack-plugin.js"
+      "import": "./dist/webpack-plugin.js",
+      "require": "./dist/cjs/webpack-plugin.cjs",
+      "default": "./dist/cjs/webpack-plugin.cjs"
     }
   },
   "publishConfig": {
@@ -59,7 +67,7 @@
   },
   "scripts": {
     "prepack": "npm run build",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node ./scripts/build-cjs.mjs",
     "type:check": "tsc --project tsconfig.json --pretty --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -74,6 +82,9 @@
     "@rspack/core": "2.2.9",
     "@types/node": "26.6.2",
     "css-loader": "7.1.5",
+    "esbuild": "0.28.2",
+    "less": "4.9.1",
+    "less-loader": "13.1.0",
     "mini-css-extract-plugin": "2.10.2",
     "postcss": "8.5.32",
     "typescript": "7.0.2",

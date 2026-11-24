@@ -8,9 +8,17 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { FileScanCache } from './file-scan-cache.js'
+import { isOverrideConflictError } from './override-conflicts.js'
 import { formatAtomizationReport } from './report.js'
 import { rewriteFiles } from './rewrite.js'
-import type { AtomizationReport, SourceFile } from './types.js'
+import type {
+  AtomizationFailure,
+  AtomizationReport,
+  AtomicCustomAtRules,
+  ConflictMode,
+  LocalIdentOptions,
+  SourceFile,
+} from './types.js'
 
 export interface AtomicCssModulesPluginOptions {
   /** Glob(s), relative to the project root, matching CSS Modules files to atomize. */
@@ -29,11 +37,20 @@ export interface AtomicCssModulesPluginOptions {
    */
   report?: 'summary' | 'verbose'
   /**
-   * Rewrite CSS before scan/atomize (e.g. expand design-token at-rules).
-   * Runs for disk sync, HMR, and transform so the registry and rewrites see
-   * the same expanded source.
+   * Compile a file before scan and atomize (design tokens, or a preprocessor
+   * the same way the bundler does). Runs for the startup scan and for
+   * rewrite when the bundler has not already compiled the file. It has to
+   * reproduce the bundler's aliases, global variables, and plugins.
    */
-  preprocess?: (code: string, filePath: string) => string
+  preprocess?: (
+    code: string,
+    filePath: string
+  ) => string | Promise<string>
+  conflicts?: ConflictMode
+  localIdents?: LocalIdentOptions
+  customAtRules?: AtomicCustomAtRules
+  /** When true, one file's scan or rewrite error fails the build. */
+  strict?: boolean
 }
 
 export interface RewrittenModule {
@@ -68,8 +85,18 @@ export interface AtomicPluginState {
   builtModule(filePath: string): object | undefined
   noteEmittedRegistryHash(hash: string): void
   emittedRegistryHash(): string
-  rewriteCssModule(filePath: string, code: string): RewrittenModule | null
+  rewriteCssModule(
+    filePath: string,
+    code: string,
+    compiled?: boolean
+  ): Promise<RewrittenModule | null>
   formatReport(report: AtomizationReport): string
+  readonly moduleSuffixes: readonly string[]
+  useCompilationFiles(filePaths: readonly string[]): void
+  registryDependencies(): readonly string[]
+  noteLoaderRegistry(css: string): void
+  loaderRegistry(): string | undefined
+  clearLoaderRegistry(): void
 }
 
 const DEFAULT_INCLUDE = ['**/*.module.css']
@@ -83,15 +110,31 @@ function matchesAny(filePath: string, patterns: readonly string[]): boolean {
   return patterns.some((pattern) => path.matchesGlob(filePath, pattern))
 }
 
+export function moduleSuffixes(patterns: readonly string[]): string[] {
+  const found: string[] = []
+  const seen = new Set<string>()
+  for (const pattern of patterns) {
+    for (const match of pattern.matchAll(/\.module\.[a-z0-9]+/gi)) {
+      const suffix = match[0].toLowerCase()
+      if (seen.has(suffix)) continue
+      seen.add(suffix)
+      found.push(suffix)
+    }
+  }
+  if (found.length === 0) found.push('.module.css')
+  return found
+}
+
 /** True for JS/TS modules that reference a CSS module but not the registry yet. */
 export function needsRegistryImport(
   filePath: string,
   code: string,
-  registryId: string
+  registryId: string,
+  suffixes: readonly string[]
 ): boolean {
   return (
     isJsModule(filePath) &&
-    code.includes('.module.css') &&
+    suffixes.some((suffix) => code.includes(suffix)) &&
     !code.includes(registryId)
   )
 }
@@ -122,22 +165,45 @@ export function createAtomicPluginState(
     ? [options.exclude].flat()
     : DEFAULT_EXCLUDE
   const preprocess = options.preprocess
+  const strict = options.strict === true
+  const suffixes = moduleSuffixes(includePatterns)
 
   let root = process.cwd()
-  let debugNames = false
+  let debugNames = options.debugNames === true
   let sourceMap = false
   let registryCss = ''
   let registryHash = ''
   let remappedFiles: string[] = []
   let emittedRegistryHash = ''
+  let activeFiles: readonly string[] | undefined
+  let loaderRegistryCss: string | undefined
   const builtModules = new Map<string, object>()
-  const cache = new FileScanCache()
+  const rewriteFailures = new Map<string, string>()
+  const cache = new FileScanCache({
+    debugNames,
+    conflicts: options.conflicts,
+    localIdents: options.localIdents,
+    customAtRules: options.customAtRules,
+    strict: options.strict,
+  })
 
-  function prepareSource(filePath: string, code: string): SourceFile {
-    return {
-      filePath,
-      code: preprocess === undefined ? code : preprocess(code, filePath),
-    }
+  async function prepareSource(
+    filePath: string,
+    code: string
+  ): Promise<SourceFile> {
+    if (preprocess === undefined) return { filePath, code }
+    return { filePath, code: await preprocess(code, filePath) }
+  }
+
+  function canScanFromDisk(filePath: string): boolean {
+    if (preprocess) return true
+    return /\.(?:css|pcss|postcss)$/i.test(filePath)
+  }
+
+  function fail(filePath: string, error: unknown): void {
+    const message = error instanceof Error ? error.message : String(error)
+    rewriteFailures.set(filePath, message)
+    cache.noteFailure(filePath, '', message)
   }
 
   function publishSnapshot(): AtomizationReport {
@@ -167,8 +233,15 @@ export function createAtomicPluginState(
     cache.retain(filePaths)
     await Promise.all(
       filePaths.map(async (filePath) => {
-        const code = await fs.readFile(filePath, 'utf8')
-        cache.update(prepareSource(filePath, code))
+        if (!canScanFromDisk(filePath)) return
+        try {
+          const code = await fs.readFile(filePath, 'utf8')
+          cache.update(await prepareSource(filePath, code))
+        } catch (error) {
+          if (isEnoent(error)) return
+          if (strict || isOverrideConflictError(error)) throw error
+          fail(filePath, error)
+        }
       })
     )
     return publishSnapshot()
@@ -197,7 +270,14 @@ export function createAtomicPluginState(
         dirty = true
         continue
       }
-      if (cache.update(prepareSource(file.filePath, file.code))) dirty = true
+      try {
+        const prepared = await prepareSource(file.filePath, file.code)
+        if (cache.update(prepared)) dirty = true
+      } catch (error) {
+        if (strict || isOverrideConflictError(error)) throw error
+        fail(file.filePath, error)
+        dirty = true
+      }
     }
 
     if (!dirty) return false
@@ -208,6 +288,7 @@ export function createAtomicPluginState(
   async function readIfCss(
     filePath: string
   ): Promise<{ filePath: string; code?: string } | undefined> {
+    if (!canScanFromDisk(filePath)) return
     if (!isMatchingCssModule(filePath) && !cache.has(filePath)) return
     try {
       return { filePath, code: await fs.readFile(filePath, 'utf8') }
@@ -236,7 +317,7 @@ export function createAtomicPluginState(
           if (!isEnoent(error)) throw error
           return
         }
-        for (const spec of code.matchAll(/['"]([^'"]+\.module\.css)['"]/g)) {
+        for (const spec of code.matchAll(importPattern(suffixes))) {
           const request = spec[1]
           if (!request) continue
           const resolved = path.isAbsolute(request)
@@ -252,38 +333,77 @@ export function createAtomicPluginState(
 
   async function applyFileChange(filePath: string): Promise<void> {
     try {
+      if (!canScanFromDisk(filePath)) return
       const code = await fs.readFile(filePath, 'utf8')
-      cache.update(prepareSource(filePath, code))
+      cache.update(await prepareSource(filePath, code))
     } catch (error) {
-      if (!isEnoent(error)) throw error
-      cache.remove(filePath)
+      if (isEnoent(error)) {
+        cache.remove(filePath)
+      } else if (strict || isOverrideConflictError(error)) {
+        throw error
+      } else {
+        fail(filePath, error)
+      }
     }
     publishSnapshot()
   }
 
-  function rewriteCssModule(
+  async function rewriteCssModule(
     filePath: string,
-    code: string
-  ): RewrittenModule | null {
+    code: string,
+    compiled = false
+  ): Promise<RewrittenModule | null> {
     if (!isMatchingCssModule(filePath)) return null
 
-    const source = prepareSource(filePath, code)
-    if (cache.update(source)) publishSnapshot()
+    let source: SourceFile
+    try {
+      source =
+        compiled || preprocess === undefined
+          ? { filePath, code }
+          : await prepareSource(filePath, code)
+      if (cache.update(source)) publishSnapshot()
+    } catch (error) {
+      if (strict || isOverrideConflictError(error)) throw error
+      fail(filePath, error)
+      return null
+    }
+
     const scan = cache.getScan(filePath)
-    if (!scan) return null
-    const [file] = rewriteFiles(
-      [source],
-      [scan],
-      {
-        registryImportPath: '',
-        composeFrom: 'global',
-        sourceMap,
-        debugNames,
-      },
-      cache.getAtoms()
-    )
-    if (!file || !file.changed) return null
-    return { code: file.code, map: file.map }
+    if (!scan || scan.failure) return null
+    try {
+      const [file] = rewriteFiles(
+        [source],
+        [scan],
+        {
+          registryImportPath: '',
+          composeFrom: 'global',
+          sourceMap,
+          debugNames,
+          conflicts: options.conflicts,
+          customAtRules: options.customAtRules,
+          strict: options.strict,
+        },
+        cache.getAtoms()
+      )
+      if (!file || file.failure || !file.changed) {
+        if (file?.failure) rewriteFailures.set(filePath, file.failure)
+        return null
+      }
+      rewriteFailures.delete(filePath)
+      return { code: file.code, map: file.map }
+    } catch (error) {
+      if (strict || isOverrideConflictError(error)) throw error
+      fail(filePath, error)
+      return null
+    }
+  }
+
+  function useCompilationFiles(filePaths: readonly string[]): void {
+    activeFiles = filePaths
+    const subset = cache.registryFor(new Set(filePaths))
+    if (!subset) return
+    registryCss = subset.css
+    registryHash = subset.hash
   }
 
   return {
@@ -329,10 +449,37 @@ export function createAtomicPluginState(
     },
     rewriteCssModule,
     formatReport(report) {
-      return formatAtomizationReport(report, {
-        verbose: options.report === 'verbose',
-        root,
-      })
+      const failures: AtomizationFailure[] = [...report.failures]
+      for (const [filePath, message] of rewriteFailures) {
+        if (failures.some((failure) => failure.filePath === filePath)) continue
+        failures.push({ filePath, message })
+      }
+      return formatAtomizationReport(
+        { ...report, failures },
+        {
+          verbose: options.report === 'verbose',
+          root,
+        }
+      )
+    },
+    moduleSuffixes: suffixes,
+    useCompilationFiles,
+    registryDependencies() {
+      return activeFiles ?? cache.filePaths()
+    },
+    noteLoaderRegistry(css) {
+      loaderRegistryCss ??= css
+    },
+    loaderRegistry() {
+      return loaderRegistryCss
+    },
+    clearLoaderRegistry() {
+      loaderRegistryCss = undefined
     },
   }
+}
+
+function importPattern(suffixes: readonly string[]): RegExp {
+  const body = suffixes.map((suffix) => suffix.replace(/\./g, '\\.')).join('|')
+  return new RegExp(`['"]([^'"]+(?:${body}))['"]`, 'g')
 }
