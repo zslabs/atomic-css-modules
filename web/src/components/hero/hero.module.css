@@ -17,7 +17,7 @@
   background-image: url('/media/ooorganize-bg.svg');
   background-position: center;
   background-size: 200px;
-  mask-image: linear-gradient(to right, transparent, black);
+  mask-image: linear-gradient(to bottom right, transparent, black);
 }
 
 .heroBadge {
